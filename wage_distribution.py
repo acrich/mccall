@@ -8,7 +8,7 @@ N_points = 4000
 def lognormal_draws(n=100, μ=1.5, σ=1.4, seed=1234):
     np.random.seed(seed)
     z = np.random.randn(n)
-    w_draws = np.exp(μ + σ * z) * 4
+    w_draws = np.exp(μ + σ * z) * 2
     return w_draws
 
 

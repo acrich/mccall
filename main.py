@@ -5,6 +5,7 @@ from separations import binomial_draws
 import matplotlib.pyplot as plt
 from numba import njit, prange, float64, int64
 import quantecon as qe
+import random
 
 
 """
@@ -46,10 +47,12 @@ def u(x):
     return np.log(x)
 
 
-def lognormal_draws(n=100, μ=2.5, σ=1.4, seed=1234):
+def lognormal_draws(n=100, μ=2.5, σ=1.4, seed=None):
+    if seed is None:
+        seed = random.randint(1000,10001)
     np.random.seed(seed)
     z = np.random.randn(n)
-    w_draws = np.exp(μ + σ * z) * 4
+    w_draws = np.exp(μ + σ * z) * 2
     return w_draws
 
 
@@ -91,6 +94,15 @@ def update_v(v, h, d):
                     a_opt_employed[i, j] = 0
                 else:
                     a_opt_employed[i, j] = np.where(rhs == v_new[i, j])[0][0]
+
+            if a_opt_employed[i, j] > i:
+                # household wants to increase savings, let's tax it.
+                #print(i)
+                #print("a_opt before taxes:")
+                #print(a_opt_employed[i, j])
+                a_opt_employed[i, j] -= round(τ * (a_opt_employed[i, j] - i))
+                #print("a_opt after taxes:")
+                #print(a_opt_employed[i, j])
 
     return v_new, a_opt_employed
 
@@ -171,7 +183,6 @@ def solve_model(tol=1e-3, max_iter=2000):
         if i == max_iter:
             raise Exception("Reached max_iter without convergence")
 
-    print(i)
     return v, h, accept_or_reject, a_opt_unemployed, a_opt_employed
 
 
@@ -185,7 +196,8 @@ def draw_lifetime(T=100, a_0_value=1):
     stays_employed = binomial_draws(n=T)
     u_t = np.empty(T)
     is_employed = 1
-    w = lognormal_draws(n=T, μ=0.5, σ=2)
+    seed = random.randint(1000,10001)
+    w = lognormal_draws(n=T, μ=0.8, σ=0.7, seed=seed)
     employment_spells = np.empty(T)
     w_t = w[0]
     realized_wage = np.empty(T)
@@ -195,10 +207,13 @@ def draw_lifetime(T=100, a_0_value=1):
     a[0] = a_0
     consumption = np.empty(T)
     itu = []
+    reservation_wage = np.empty(T)
     for t in range(T):
         employment_spells[t] = is_employed
         w_index = find_nearest_index(w_grid, w_t)
         a_index = np.where(np.isclose(a_grid, a[t]))[0][0]
+
+        reservation_wage[t] = w_grid[np.where(accept_or_reject[a_index, :] == 1)[0][0]]
 
         if is_employed:
             a[t+1] = a_grid[a_opt_employed[a_index, w_index]]
@@ -224,42 +239,59 @@ def draw_lifetime(T=100, a_0_value=1):
         realized_w_index = find_nearest_index(w_grid, w_t)
         itu.append((v[a_index, realized_w_index], h[a_index, realized_w_index]))
     a = a[:-1].copy()
-    return a, u_t, realized_wage, employment_spells, itu, consumption, separations
+    return a, u_t, realized_wage, employment_spells, itu, consumption, separations, reservation_wage
 
 
-def draw(a, u_t, realized_wage, employment_spells, itu, consumption, separations, T=100):
+def draw(a, u_t, realized_wage, employment_spells, itu, consumption, separations, reservation_wage, T=100):
     fig, ax = plt.subplots()
     ax.set_xlabel('periods')
     ax.set_ylabel('stuff')
 
-    ax.plot(range(T), u_t, '--', alpha=0.4, label=f"$u(consumption)$")
-    ax.plot(range(T), a, '-', alpha=0.4, label=f"$a_t$")
-    ax.plot(range(T), consumption, '-', alpha=0.4, label=f"$c_t$")
-    ax.plot(range(T), realized_wage, '--', alpha=0.4, label=f"$w_t$")
-    ax.plot(range(T), employment_spells, '--', alpha=0.4, label=f"$employed$")
+    # ax.plot(range(T), u_t, '--', alpha=0.4, color="C0", label=f"$u(c_t)$")
+    ax.plot(range(T), a, '-', alpha=0.4, color="C1", label=f"$a_t$")
+    # ax.plot(range(T), consumption, '-', alpha=0.4, color="C2", label=f"$c_t$")
+    ax.plot(range(T), realized_wage, '--', alpha=0.4, color="C3", label=f"$w_t$")
+    ax.plot(range(T), employment_spells, '--', alpha=0.4, color="C6", label=f"$employed$")
+    ax.plot(range(T), reservation_wage, '--', alpha=0.4, color="C8", label="$\overline{w}$")
     for t in separations:
-        plt.axvline(x=t)
+        plt.axvline(x=t, color="C7")
     ax.legend(loc='upper right')
     plt.show()
 
 
-def run():
-    T = 100
-    a, u_t, realized_wage, employment_spells, itu, consumption, separations = draw_lifetime(T=T, a_0_value=1)
-    #draw(a, u_t, realized_wage, employment_spells, itu, consumption, separations, T=T)
+def run_a_lot(T):
+    wages = []
+    for i in range(1000):
+        a, u_t, realized_wage, employment_spells, itu, consumption, separations, reservation_wage = draw_lifetime(T=T, a_0_value=0)
+        wages.append(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
+    print("average lifetime wage for the poor: {}".format(np.mean(np.asarray(wages))))
+    wages = []
+    for i in range(1000):
+        a, u_t, realized_wage, employment_spells, itu, consumption, separations, reservation_wage = draw_lifetime(T=T, a_0_value=150)
+        wages.append(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
+    print("average lifetime wage for the rich: {}".format(np.mean(np.asarray(wages))))
+
+def run(T):
+    a, u_t, realized_wage, employment_spells, itu, consumption, separations, reservation_wage = draw_lifetime(T=T, a_0_value=0)
+    draw(a, u_t, realized_wage, employment_spells, itu, consumption, separations, reservation_wage, T=T)
     print(np.sum(employment_spells))
     print(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
-    a, u_t, realized_wage, employment_spells, itu, consumption, separations = draw_lifetime(T=T, a_0_value=150)
+    a, u_t, realized_wage, employment_spells, itu, consumption, separations, reservation_wage = draw_lifetime(T=T, a_0_value=150)
     print(np.sum(employment_spells))
     print(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
-    #draw(a, u_t, realized_wage, employment_spells, itu, consumption, separations, T=T)
+    draw(a, u_t, realized_wage, employment_spells, itu, consumption, separations, reservation_wage, T=T)
 
 
-c = 1e-10
+c = 2
 β = 0.96
-α = 0.1
 
-w_draws = lognormal_draws(n=1000, μ=0.8, σ=0.7)
+# see: https://www.bls.gov/news.release/pdf/nlsoy.pdf
+T = 408
+α = 1/34
+
+τ = 0.8
+
+w_draws = lognormal_draws(n=1000, μ=0.8, σ=0.7, seed=1234)
 
 w_min = 1e-10
 w_max = np.max(w_draws)
@@ -278,10 +310,10 @@ a_max = 200
 a_size = 100
 a_grid = np.linspace(a_min, a_max, a_size)
 
-minimal_consumption = 10
+minimal_consumption = 3
 
 
-ism = 1  # inter-temporal savings motive
+ism = 0.98  # inter-temporal savings motive
 r = (ism/β) - 1
 
 
@@ -303,6 +335,4 @@ r = (ism/β) - 1
 
 v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = solve_model()
 
-print(accept_or_reject)
-
-run()
+run_a_lot(T)

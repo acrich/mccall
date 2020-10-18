@@ -1,3 +1,4 @@
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import bernoulli
@@ -8,7 +9,9 @@ from numba import njit, prange, float64, int32
 from numba.experimental import  jitclass
 
 
-def binomial_draws(n=1000, α=0.1, seed=2345):
+def binomial_draws(n=1000, α=0.1, seed=None):
+    if seed is None:
+        seed = random.randint(1000,10001)
     np.random.seed(seed)
     draws = bernoulli.rvs(1 - α, size=n)
     return draws
