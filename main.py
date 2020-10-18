@@ -7,6 +7,30 @@ from numba import njit, prange, float64, int64
 import quantecon as qe
 
 
+"""
+general plan:
+We've taken the basic McCall model, as implemented in quantecon.org, and plan
+to apply the following steps:
+1. add separations (following example in quantecon.org)
+2. add continuous distribution of w (again, following quantecon.org)
+3. add savings. from now on I'm by myself.
+4. add multiple agents with heterogeneity in a_0
+5. add w that's resolved competitively using a technology that includes a stochastic TFP.
+
+With savings allowed, the equations from:
+https://python.quantecon.org/mccall_model_with_separation.html#The-Bellman-Equations
+become:
+
+v(w_e, a) = u(c_e) + \beta [(1 - \alpha) v(w_e, a') + \alpha \sum_{w'} h(w', a') q(w')] \; s.t. \; c_e + a' = a + w_e
+h(w, a) = \max \{ v(w, a), u(c_u) + \beta \sum_{w'} h(w', a') q(w') \} \; s.t. \; c_u + a' = a
+
+and equations (5) and (6) become:
+
+d(a') = \sum_{w'} \{ v(w', a'), u(a' - a'') +\beta d(a'') \} q(w')
+v(w,a) = u(a + w - a') + \beta [(1 - \alpha) v(w, a') + \alpha d(a')]
+"""
+
+
 np.set_printoptions(threshold=sys.maxsize)
 
 

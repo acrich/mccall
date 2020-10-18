@@ -3,6 +3,11 @@ import numpy as np
 from separations import binomial_draws
 import matplotlib.pyplot as plt
 
+"""
+this is a simplified version of the model - it doesn't have savings.
+I only use this for graphing out how things look like initially.
+"""
+
 c = 0.5
 u = lambda x: np.log(x)
 β = 0.96
