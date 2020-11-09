@@ -1,0 +1,137 @@
+a higher c (unemployment benefits), means:
+in times of unemployment, consumption grows, both because of the benefits themselves and because of lower savings.
+in times of employment, savings should be lower, meaning consumption again grows.
+reservation wage should rise with c. should it do so for every savings level? probably the effect should decrease in savings. as a result, average wage should increase, and wage disparity should decrease.
+
+increased savings should make for smoother consumption. it also makes for higher consumption. the two things work together only if the increase in consumption decreases as savings increase.
+
+there should be a reasonable relationship between the wage distribution and c.
+
+let's rename c to z. c should be consumption.
+
+the lower ism is, the lower the savings decisions should be.
+the higher the probability of separations (alpha), the lower the relationship between ism and savings should be, because there's another savings motive.
+
+accept_or_reject determines the reservation wage. for every savings level it gives a threshold of wage above which we move from reject to accept.
+that's all the information that's conveyed there. we expect the reservation wage to increase with savings.
+the reservation wage will increase in benefits.
+it'll increase in beta.
+it'll increase with the mean wage. it'll increase with the variation of the wage distribution because more risk is better in this model.
+
+if we use a ces utility where we can control the relative/absolute risk aversion.
+the higher the ARA, the lower the utility will be when we increase the either the wage variation or alpha.
+higher ARA means we have less motivation to increase consumption, so we should save more.
+
+measuring it the other way around, higher consumption means lower A(c). The higher the ARA, the higher the effect will be.
+there should be an indirect effect of wages/savings/benefits on consumption and through that on A(c).
+
+higher ARA means lower reservation wage.
+
+our function should withhold DARA and consequently also prudence.
+however, relative risk aversion need not be constant. all options are legitimate.
+there's evidence that relative risk aversion is U shaped.
+
+the wage grid should simply reflect the wage distribution, and have a high resolution.
+playing with the min/max grid values is not advised.
+
+relationship between wage distribution and assets grid should be derived from the results of the model.
+so we start with a very big grid, and then see that we can maybe diminish it.
+
+the assets grid is also sensitive to changes in T, in case there's no equilibrium and assets keep growing.
+
+increasing minimal consumption should increase consumption (diminishing effect, maybe we should see a discontinuity at the minimal consumption threshold).
+you'd think it'll diminish savings, but really only up to the minimal consumption level. after that, savings should increase because of the added risk.
+increase in minimal consumption should raise the reservation wage.
+in times of unemployment, increased minimal consumption means faster burn rate (churn), so it diminishes the gap in behavior between rich and poor.
+
+minimal consumption should never be below the minimum wage... and minimum wage should probably not be zero, like it is in our model so far.
+that way, poor unemployed can always accept the offer to be able to pay for the minimal consumption, so you get a higher probability that they'll end up with absolutely low wages.
+however, as stated above, rich households will grow poor faster, so they'll end up with lower wages as well.
+we can't anticipate which effect is stronger.
+however, we can anticipate higher savings (but only for the part of wages after minimal consumption has been spent).
+this higher saving rate is for both types of households, but we'll see it happen more for the rich because they'll have the higher wages.
+
+ism should interact with ARA. if ism is higher (interest is higher), we'll take more risks in order to increase savings.
+so the reservation wage should increase with ism, and higher ARA should make the effect smaller.
+
+a_opt_unemployed should match a_opt_employed for wages above the reservation wage.
+for wages below that, a_opt_unemployed should be constant in wage, and increasing in assets
+the increase in next period assets is decreasing - at low levels, we eat a lot of our savings. at high levels, we keep relatively most of it, but still eat away absolutely more.
+with respect to current level assets, when unemployed, next level assets should always be lower (unless benefits are too high), so we're always below y=x.
+when employed, a_opt_employed is higher in wage (and increasing), and higher in assets (but decreasing)
+there is an equilibrium asset level for every wage, and households will only save up to it, or eat away savings until they reach it.
+so next period assets are above y=x for small current period levels, and eventually they go below.
+
+a_opt_employed shouldn't be directly affected by benefits.
+higher beta means a_opt_employed and a_opt_unemployed should both be higher.
+higher alpha means times of employment I'd want to save more, so a_opt_employed should have a higher equilibrium. a_opt_unemployed should not be affected.
+
+changes in mean wage make potential future unemployment less threatening, but increases the benefit from higher assets in the future.
+so there are effects on a_opt_employed in both ways and we can't anticipate results.
+changes in the mean wage should encourage unemployed to stay that way longer, so it should decrease asset burn rate, meaning a_opt_unemployed will be higher.
+
+a mean preserving spread in wages would make unemployment more attractive, so savings in both employment and unemployment should be higher.
+
+if a_opt_employed ever hits a_max, then we a bigger grid.
+
+higher minimal consumption should decrease a_opt_employed when wage is low, and have no effect when wage is high.
+it should increase churn when unemployed, so a_opt_unemployed may be lower for every asset level, but only when the wage is below the reservation wage.
+
+higher minimal consumption should improve consumption smoothing for the first few unemployment periods, but worsen it for longer spells.
+
+higher ism (consequently also interest), means both a_opt choices should be higher, unless you're unemployed and assets are low, in which case you don't care about interest.
+
+the effect of ism on savings should increase in the level of assets, and in wages.
+
+v and h should both increase in assets and in wages.
+for every asset level (row), values of h and v above the reservation wage for that asset level should be the same.
+below the reservation wage, h should be higher than v, and also constant on that part of the row.
+
+sum(separations) should on average be αT.
+
+a, u_t, consumption and realized_wage are results of decisions in a path over time.
+they act differently than the direct results of solving the model.
+essentially, we should see the following:
+a increases when employment_spells is set, and decreases when it's not.
+a should move together with realized_wage
+a' and consumption should match a and realized_wage, at every period.
+at higher a, consumption smoothing should happen more.
+what we're really smoothing is not consumption but intertemporal utility, the value of v/h should be smooth over time, while u(c) may be different.
+consumption should move with the realized_wage.
+
+parameters and result variables:
+c = 2
+β = 0.96
+minimal_consumption = 3
+τ = 0.8
+
+# see: https://www.bls.gov/news.release/pdf/nlsoy.pdf
+T = 408
+α = 1/34
+
+wage parameters: μ=0.8, σ=0.7
+
+w_min = 1e-10
+w_max = np.max(w_draws)
+w_size = 50
+
+a_min = 1e-10
+a_max = 200
+a_size = 100
+
+ism = 0.98  # inter-temporal savings motive
+r = (ism/β) - 1
+
+accept_or_reject
+a_opt_employed
+a_opt_unemployed
+v
+h
+
+a
+u_t
+realized_wage
+employment_spells
+consumption
+separations
+reservation_wage
