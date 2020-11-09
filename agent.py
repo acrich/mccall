@@ -1,11 +1,8 @@
 import sys
-from interpolation import interp
 import numpy as np
 from separations import binomial_draws
 import matplotlib.pyplot as plt
-from numba import njit, prange, float64, int64
-import quantecon as qe
-import random
+from numba import njit
 from model import Model
 from wage_distribution import lognormal_draws
 
@@ -36,7 +33,7 @@ def find_nearest_index(array, value):
     return (np.abs(array - value)).argmin()
 
 
-def generate_lifetime(T=100, a_0=1, model={}):
+def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=None, a_opt_employed=None):
     """
     Given initial asset level a_0, this function returns employment,
     consumption and savings decisions and separations and wage incidences
@@ -217,8 +214,9 @@ def run(T, m):
 #     np.save('a_opt_unemployed.npy', a_opt_unemployed)
 #     np.save('a_opt_employed.npy', a_opt_employed)
 
-m = Model()
-v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+if __name__ == '__main__':
+    m = Model()
+    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
-T = 408
-run(T, m)
+    T = 408
+    run(T, m)
