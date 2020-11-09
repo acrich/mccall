@@ -1,12 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import bernoulli
+from numba import njit
+
 
 N_points = 4000
 
 μ=0.8
 σ=0.7
 
+@njit
 def lognormal_draws(n=100, μ=1.5, σ=1.4, seed=1234):
     np.random.seed(seed)
     z = np.random.randn(n)
