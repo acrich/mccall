@@ -114,14 +114,11 @@ class Model:
         # coefficient of relative risk aversion (only used when u() is overriden)
         self.ρ = ρ
 
-    @staticmethod
-    def u(x):
-        return np.log(x)
-
-    # @staticmethod
-    # def u_iso_elastic(c):
-    #     # the iso-elastic utility function is CRRA, (and thus, DARA) and satisfies prudence.
-    #     return (c**(1 - self.ρ) - 1) / (1 - self.ρ)
+    def u(self, c):
+        if self.ρ == 1:
+            return np.log(c)
+        # the iso-elastic utility function is CRRA, (and thus, DARA) and satisfies prudence.
+        return (c**(1 - self.ρ) - 1) / (1 - self.ρ)
 
     def update_d(self, h):
         d = np.empty_like(self.a_grid)

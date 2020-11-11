@@ -15,13 +15,8 @@ to apply the following steps:
 2. add continuous distribution of w (again, following quantecon.org)
 3. add savings. from now on I'm by myself.
 4. add multiple agents with heterogeneity in a_0
-5. add w that's resolved competitively using a technology that includes a stochastic TFP.
+5. add w that's resolved competitively using a technology that includes a stochastic TFP?
 """
-
-
-@njit
-def u(x):
-    return np.log(x)
 
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -135,7 +130,7 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
             else:
                 a[t+1] = model.a_grid[a_opt_unemployed[a_index, w_index]]
                 consumption[t] = model.z + a[t] - a[t+1] - model.c_hat
-        u_t[t] = u(consumption[t])
+        u_t[t] = model.u(consumption[t])
         realized_wage[t] = w_t
 
     # drop assets at period T+1 because our graphs only go up to T.
