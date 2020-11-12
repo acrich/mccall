@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from test_consumption_savings import get_steady_state
+from validation.steady_state import get_steady_state
+
 
 """
 higher alpha means times of employment I'd want to save more, so a_opt_employed should have a higher equilibrium. a_opt_unemployed should not be affected.
@@ -15,6 +16,13 @@ DIR = '/home/shay/projects/quantecon/results/alpha/'
 
 
 def steady_state_by_alpha():
+    """
+    plot steady state assets level for employed agents by different values of
+    the separation rate (α).
+    there is a (non-unique) steady-state level for every wage. so this function
+    generates plots for several wage levels. if there are more than 1 steady
+    state, we only plot the first one in the list.
+    """
     w_choice_indices = np.arange(0, 10, 2)
     alpha_choices = np.linspace(0.05, 0.95, 18)
     steady_states = np.empty((len(w_choice_indices), len(alpha_choices)))
@@ -23,12 +31,7 @@ def steady_state_by_alpha():
         v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
         for w_choice_index, w_grid_index in enumerate(w_choice_indices):
-            ss = get_steady_state(a_opt_employed[:, w_grid_index])
-            if len(ss) == 0:
-                raise Exception("couldn't find steady state for {}".format(j))
-            if len(ss) > 1:
-                print(ss)
-            steady_states[w_choice_index, alpha_index] = next(iter(ss))
+            steady_states[w_choice_index, alpha_index] = get_steady_state(a_opt_employed[:, w_grid_index])
 
     for w_choice_index, w_grid_index in enumerate(w_choice_indices):
         w = m.w_grid[w_grid_index]
@@ -159,15 +162,16 @@ def v_by_alpha():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     steady_state_by_alpha()
     reservation_wage_by_alpha()
     h_by_alpha()
     v_by_alpha()
     savings_by_alpha()
-    unsavings_by_alpha()
+    unsaving_by_alpha()
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

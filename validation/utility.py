@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from test_consumption_savings import get_steady_state
+from validation.steady_state import get_steady_states
 
 
 """
@@ -29,14 +29,9 @@ def utility_by_assets():
         ax.set_ylabel('utility')
         ax.plot(m.a_grid, h[:, w_grid_index], '-', alpha=0.4, color="C1", label="h(:, {w})".format(w=round(w)))
         ax.plot(m.a_grid, v[:, w_grid_index], '-', alpha=0.4, color="C2", label="v(:, {w})".format(w=round(w)))
-        try:
-            ss = get_steady_state(a_opt_employed[:, w_grid_index])
-            if len(ss) == 0:
-                raise Exception("couldn't find steady state for {}".format(j))
-            for steady_state in ss:
-                plt.axvline(x=steady_state)
-        except IndexError:
-            pass
+        steady_states = get_steady_states(a_opt_employed[:, w_grid_index])
+        for steady_state in steady_states:
+            plt.axvline(x=steady_state)
         ax.legend(loc='lower right')
         plt.savefig(DIR + 'utility_by_assets_at_{w}_wage.png'.format(w=w))
         plt.close()
@@ -66,11 +61,12 @@ def utility_by_wage():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     utility_by_assets()
     utility_by_wage()
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

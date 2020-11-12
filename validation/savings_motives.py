@@ -93,12 +93,13 @@ def savings_per_alpha():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     test_reservation_wage()
     savings_per_ism()
     savings_per_alpha()
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

@@ -139,6 +139,9 @@ def benefits():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     assets()
     benefits()
     beta()
@@ -147,6 +150,4 @@ def main():
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from test_consumption_savings import get_steady_state
+from validation.steady_state import get_steady_state
 
 """
 higher beta means a_opt_employed and a_opt_unemployed should both be higher.
@@ -23,12 +23,7 @@ def steady_state_by_beta():
         v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
         for w_choice_index, w_grid_index in enumerate(w_choice_indices):
-            ss = get_steady_state(a_opt_employed[:, w_grid_index])
-            if len(ss) == 0:
-                raise Exception("couldn't find steady state for {}".format(j))
-            if len(ss) > 1:
-                print(ss)
-            steady_states[w_choice_index, beta_index] = next(iter(ss))
+            steady_states[w_choice_index, beta_index] = get_steady_state(a_opt_employed[:, w_grid_index])
 
     for w_choice_index, w_grid_index in enumerate(w_choice_indices):
         w = m.w_grid[w_grid_index]
@@ -84,7 +79,7 @@ def unsaving_by_beta():
             ax.set_xlabel('current period assets')
             ax.set_ylabel('next period assets')
             ax.plot(m.a_grid, savings[w_choice_index, beta_index], '-', alpha=0.4, color="C1", label="next period assets")
-            plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{beta}_alpha.png'.format(w=w, alpha=alpha))
+            plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{beta}_beta.png'.format(w=w, beta=beta))
             plt.close()
 
 
@@ -160,15 +155,16 @@ def v_by_beta():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     steady_state_by_beta()
     reservation_wage_by_beta()
     h_by_beta()
     v_by_beta()
-    savings_by_alpha()
-    unsavings_by_alpha()
+    savings_by_beta()
+    unsaving_by_beta()
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

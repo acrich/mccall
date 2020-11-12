@@ -3,7 +3,7 @@ from model_with_risk import Model
 import numpy as np
 import matplotlib.pyplot as plt
 
-from test_consumption_savings import get_steady_state
+from validation.steady_state import get_steady_state, get_steady_states
 
 
 """
@@ -28,30 +28,8 @@ def ss_by_wage():
     steady_states_employed = np.empty_like(m.w_grid)
     steady_states_unemployed = np.empty_like(m.w_grid)
     for j, w in enumerate(m.w_grid):
-        try:
-            ss_employed = get_steady_state(a_opt_employed[:, j])
-        except:
-            print("got exception at {w} for employed".format(w=w))
-            continue
-
-        if len(ss_employed) == 0:
-            raise Exception("couldn't find steady state for {}".format(j))
-        if len(ss_employed) > 1:
-            print(ss_employed)
-
-        try:
-            ss_unemployed = get_steady_state(a_opt_unemployed[:, j])
-        except:
-            print("got exception at {w} for unemployed".format(w=w))
-            continue
-
-        if len(ss_unemployed) == 0:
-            raise Exception("couldn't find steady state for {}".format(j))
-        if len(ss_unemployed) > 1:
-            print(ss_unemployed)
-
-        steady_states_employed[j] = next(iter(ss_employed))
-        steady_states_unemployed[j] = next(iter(ss_unemployed))
+        steady_states_employed[j] = get_steady_state(a_opt_employed[:, j])
+        steady_states_unemployed[j] = get_steady_state(a_opt_unemployed[:, j])
 
     fig, ax = plt.subplots()
     ax.set_xlabel('wage')
@@ -61,6 +39,28 @@ def ss_by_wage():
     ax.legend(loc='upper right')
     plt.savefig(DIR + 'steady_state_by_wage_employed_or_not.png')
     plt.close()
+
+
+def steady_states():
+    m = Model()
+    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+
+    w_choice_indices = np.arange(0, 6, 2)
+    for w_grid_index in w_choice_indices:
+        w = m.w_grid[w_grid_index]
+        steady_states = get_steady_states(a_opt_employed[:, w_grid_index])
+
+        fig, ax = plt.subplots()
+        ax.set_xlabel('current period assets')
+        ax.set_ylabel('next period assets with {w} wage'.format(w=w))
+
+        ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="$a$")
+        ax.plot(m.a_grid, a_opt_employed[:, w_grid_index], '-', alpha=0.4, color="C2", label="$a_e'$")
+        for steady_state in steady_states:
+            plt.axvline(x=steady_state)
+        plt.savefig(DIR + 'steady_states_at_{w}_wage.png'.format(w=w))
+        plt.close()
+
 
 # next period assets by current period assets for employed/unemployed, below reservation wage
 # next period assets by current period assets for employed/unemployed, at reservation wage
@@ -120,12 +120,14 @@ def savings_by_wage():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     ss_by_wage()
+    steady_states()
     savings_by_assets()
     savings_by_wage()
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

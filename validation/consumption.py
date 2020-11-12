@@ -56,25 +56,6 @@ def is_monotonically_increasing(vector):
     return True
 
 
-def follow_to_steady_state(index, vector, visited_indices):
-    if index == vector[index]:
-        return index
-    if index in visited_indices:
-        if abs(index - vector[index]) == 1:
-            return (index + vector[index])/2
-        print(vector)
-        raise Exception("reached a cycle")
-    visited_indices.append(index)
-    return follow_to_steady_state(vector[index], vector, visited_indices)
-
-
-def get_steady_state(vector):
-    steady_states = []
-    for index, scalar in enumerate(vector):
-        steady_states.append(follow_to_steady_state(index, vector, []))
-    return set(steady_states)
-
-
 def ss_by_wage(m, a_opt_employed):
     steady_states = []
     for j, w in enumerate(m.w_grid):
@@ -148,6 +129,9 @@ def consumption_by_wage(m, a_opt_employed):
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     m = Model()
     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
@@ -157,6 +141,4 @@ def main():
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

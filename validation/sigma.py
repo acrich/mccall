@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from test_consumption_savings import get_steady_state
+from validation.steady_state import get_steady_state
 
 """
 a mean preserving spread in wages would make unemployment more attractive, so savings in both employment and unemployment should be higher.
@@ -44,12 +44,7 @@ def steady_state_by_sigma():
         v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
         for w_choice_index, w_grid_index in enumerate(w_choice_indices):
-            ss = get_steady_state(a_opt_employed[:, w_grid_index])
-            if len(ss) == 0:
-                raise Exception("couldn't find steady state for {}".format(j))
-            if len(ss) > 1:
-                print(ss)
-            steady_states[w_choice_index, sigma_index] = next(iter(ss))
+            steady_states[w_choice_index, sigma_index] = get_steady_state(a_opt_employed[:, w_grid_index])
 
     for w_choice_index, w_grid_index in enumerate(w_choice_indices):
         w = m.w_grid[w_grid_index]
@@ -180,6 +175,9 @@ def v_by_sigma():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     unemployment_spells_by_sigma()
     steady_state_by_sigma()
     reservation_wage_by_sigma()
@@ -190,6 +188,4 @@ def main():
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

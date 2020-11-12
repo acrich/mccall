@@ -99,12 +99,13 @@ def burn_rate():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     savings()
     reservation_wage()
     burn_rate()
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()

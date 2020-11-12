@@ -187,6 +187,9 @@ def separations_rate():
 
 
 def main():
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
+
     consumption()
     savings()
     reservation_wage()
@@ -196,6 +199,4 @@ def main():
 
 
 if __name__ == '__main__':
-    if not os.path.exists(DIR):
-        os.makedirs(DIR)
     main()
