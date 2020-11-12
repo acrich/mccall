@@ -22,7 +22,7 @@ DIR = '/home/shay/projects/quantecon/results/employed_vs_unemployed/'
 
 
 # ss by wage for employed/unemployed
-def test_ss_by_wage():
+def ss_by_wage():
     m = Model()
     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
     steady_states_employed = np.empty_like(m.w_grid)
@@ -65,7 +65,7 @@ def test_ss_by_wage():
 # next period assets by current period assets for employed/unemployed, below reservation wage
 # next period assets by current period assets for employed/unemployed, at reservation wage
 # next period assets by current period assets for employed/unemployed, above reservation wage
-def test_savings_by_assets():
+def savings_by_assets():
     m = Model()
     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
@@ -95,7 +95,7 @@ def test_savings_by_assets():
 
 # a_opt_unemployed by wage, given asset level (mark vertical line for reservation wage)
 # a_opt_employed by wage, given asset level (mark vertical line for reservation wage)
-def test_savings_by_wage():
+def savings_by_wage():
     m = Model()
     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
@@ -119,13 +119,13 @@ def test_savings_by_wage():
         plt.close()
 
 
-def test():
-    test_ss_by_wage()
-    test_savings_by_assets()
-    test_savings_by_wage()
+def main():
+    ss_by_wage()
+    savings_by_assets()
+    savings_by_wage()
 
 
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    test()
+    main()

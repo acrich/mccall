@@ -3,6 +3,7 @@ from model_with_risk import Model
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 """
 increasing minimal consumption should increase consumption (diminishing effect, maybe we should see a discontinuity at the minimal consumption threshold).
 you'd think it'll diminish savings, but really only up to the minimal consumption level. after that, savings should increase because of the added risk.
@@ -22,10 +23,11 @@ it should increase churn when unemployed, so a_opt_unemployed may be lower for e
 higher minimal consumption should improve consumption smoothing for the first few unemployment periods, but worsen it for longer spells.
 """
 
+
 DIR = '/home/shay/projects/quantecon/results/minimal_consumption/'
 
 
-def test_savings():
+def savings():
     c_hat_choices = np.arange(0, 6)
     a_choice_indices = np.arange(0, 15, 5)
     w_choice_indices = np.arange(0, 10, 2)
@@ -50,7 +52,7 @@ def test_savings():
             plt.close()
 
 
-def test_reservation_wage():
+def reservation_wage():
     c_hat_choices = np.linspace(0.5, 10, 20)
     a_choice_indices = np.arange(0, 30, 3)
 
@@ -71,7 +73,7 @@ def test_reservation_wage():
         plt.close()
 
 
-def test_burn_rate():
+def burn_rate():
     c_hat_choices = np.arange(0, 6)
     a_choice_indices = np.arange(0, 15, 5)
     w_choice_indices = np.arange(0, 10, 2)
@@ -96,13 +98,13 @@ def test_burn_rate():
             plt.close()
 
 
-def test():
-    test_savings()
-    test_reservation_wage()
-    test_burn_rate()
+def main():
+    savings()
+    reservation_wage()
+    burn_rate()
 
 
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    test()
+    main()

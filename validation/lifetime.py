@@ -7,6 +7,7 @@ from model import Model
 from agent import generate_lifetime
 from test_consumption_savings import get_steady_state
 
+
 """
 a, u_t, consumption and realized_wage are results of decisions in a path over time.
 they act differently than the direct results of solving the model.
@@ -23,7 +24,7 @@ consumption should move with the realized_wage.
 DIR = '/home/shay/projects/quantecon/results/lifetime/'
 
 
-def generate_plots():
+def main():
     m = Model()
     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
     a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=m.T, a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
@@ -79,4 +80,4 @@ def generate_plots():
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    generate_plots()
+    main()

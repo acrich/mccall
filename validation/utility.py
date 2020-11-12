@@ -6,6 +6,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from test_consumption_savings import get_steady_state
 
+
 """
 v and h should both increase in assets and in wages.
 for every asset level (row), values of h and v above the reservation wage for that asset level should be the same.
@@ -64,7 +65,7 @@ def utility_by_wage():
         plt.close()
 
 
-def plot():
+def main():
     utility_by_assets()
     utility_by_wage()
 
@@ -72,4 +73,4 @@ def plot():
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    plot()
+    main()

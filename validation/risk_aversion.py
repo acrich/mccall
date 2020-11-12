@@ -19,10 +19,11 @@ however, relative risk aversion need not be constant. all options are legitimate
 there's evidence that relative risk aversion is U shaped.
 """
 
+
 DIR = '/home/shay/projects/quantecon/results/risk_aversion/'
 
 
-def test_consumption():
+def consumption():
     # consumption should decrease when risk aversion increases
     rho_choices = np.linspace(0.5, 10, 20)
     a_choice_indices = np.arange(0, 15, 5)
@@ -52,7 +53,7 @@ def test_consumption():
             plt.close()
 
 
-def test_savings():
+def savings():
     # savings should increase when risk aversion increases
     rho_choices = np.linspace(0.5, 10, 20)
     a_choice_indices = np.arange(0, 15, 5)
@@ -78,7 +79,7 @@ def test_savings():
             plt.close()
 
 
-def test_reservation_wage():
+def reservation_wage():
     # as risk aversion increases, reservation wage decreases
     rho_choices = np.linspace(0.5, 10, 20)
     a_choice_indices = np.arange(0, 30, 3)
@@ -99,7 +100,7 @@ def test_reservation_wage():
         plt.savefig(DIR + 'reservation_wage_per_rho_with_{a}_assets.png'.format(a=a))
         plt.close()
 
-def test_reservation_wage_and_ism():
+def reservation_wage_and_ism():
     # ism should interact with ARA. if ism is higher (interest is higher), we'll take more risks in order to increase savings.
     # so the reservation wage should increase with ism, and higher ARA should make the effect smaller.
     ism_choices = np.linspace(0.5, 1.5, 10)
@@ -125,7 +126,7 @@ def test_reservation_wage_and_ism():
             plt.close()
 
 
-def test_wage_variation():
+def wage_variation():
     # an increase in risk aversion would make utility drop harder when wage variation increases
     # it makes more sense to look at savings decisions than cardinal utilities, so we'll do that.
     rho_choices = np.linspace(0.5, 10, 6)
@@ -155,7 +156,7 @@ def test_wage_variation():
                 plt.close()
 
 
-def test_separations_rate():
+def separations_rate():
     # an increase in risk aversion would make utility drop harder when alpha increases
     # again, looking at savings decisions instead of utilities.
     alpha_choices = np.linspace(0.05, 0.5, 6)
@@ -185,16 +186,16 @@ def test_separations_rate():
                 plt.close()
 
 
-def test():
-    test_consumption()
-    test_savings()
-    test_reservation_wage()
-    test_reservation_wage_and_ism()
-    test_wage_variation()
-    test_separations_rate()
+def main():
+    consumption()
+    savings()
+    reservation_wage()
+    reservation_wage_and_ism()
+    wage_variation()
+    separations_rate()
 
 
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    test()
+    main()

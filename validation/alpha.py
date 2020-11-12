@@ -158,7 +158,7 @@ def v_by_alpha():
             plt.close()
 
 
-def validate():
+def main():
     steady_state_by_alpha()
     reservation_wage_by_alpha()
     h_by_alpha()
@@ -170,4 +170,4 @@ def validate():
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    validate()
+    main()

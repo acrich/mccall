@@ -21,7 +21,7 @@ the higher the probability of separations (alpha), the lower the relationship be
 DIR = '/home/shay/projects/quantecon/results/savings_motives/'
 
 
-def test_reservation_wage():
+def reservation_wage():
     #ism should interact with ARA. if ism is higher (interest is higher), we'll take more risks in order to increase savings.
     # so the reservation wage should increase with ism, and higher ARA should make the effect smaller.
     ism_choices = np.linspace(0.5, 1.5, 10)
@@ -44,7 +44,7 @@ def test_reservation_wage():
         plt.close()
 
 
-def test():
+def savings_per_ism():
     a_choice_indices = np.arange(0, 30, 3)
     w_choice_indices = np.arange(0, 10)
     ism_choices = np.linspace(0.5, 1.5, 10)
@@ -68,6 +68,7 @@ def test():
             plt.close()
 
 
+def savings_per_alpha():
     a_choice_indices = np.arange(0, 30, 3)
     w_choice_indices = np.arange(0, 10)
     alpha_choices = np.linspace(0, 1, 20)
@@ -90,10 +91,14 @@ def test():
             plt.savefig(DIR + 'savings_per_alpha_with_{w}_wage_and_{a}_assets.png'.format(a=a, w=w))
             plt.close()
 
+
+def main():
     test_reservation_wage()
+    savings_per_ism()
+    savings_per_alpha()
 
 
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    test()
+    main()

@@ -26,7 +26,7 @@ it'll increase with the mean wage. it'll increase with the variation of the wage
 """
 
 
-def test_something(result_var_name, choice_var_name, num_choices, min_choice, max_choice, indices, grid, get_result, results_path):
+def gen_plots(result_var_name, choice_var_name, num_choices, min_choice, max_choice, indices, grid, get_result, results_path):
     choices = np.linspace(min_choice, max_choice, num_choices)
     m = Model()
     a_index_choices = np.arange(0, len(grid), 10)
@@ -47,7 +47,7 @@ def test_something(result_var_name, choice_var_name, num_choices, min_choice, ma
         plt.close()
 
 
-def test_assets():
+def assets():
     m = Model()
     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
     reservation_wage = np.empty_like(m.a_grid)
@@ -62,13 +62,13 @@ def test_assets():
     plt.close()
 
 
-def test_beta():
+def beta():
     m = Model()
 
     def get_result(grid_index, model_output):
         return np.argwhere(model_output[2][grid_index, :] == 1)[0][0]
 
-    test_something(
+    gen_plots(
         result_var_name='reservation_wage',
         choice_var_name='β',
         num_choices=20,
@@ -81,13 +81,13 @@ def test_beta():
     )
 
 
-def test_mu():
+def mu():
     m = Model()
 
     def get_result(grid_index, model_output):
         return np.argwhere(model_output[2][grid_index, :] == 1)[0][0]
 
-    test_something(
+    gen_plots(
         result_var_name='reservation_wage',
         choice_var_name='μ',
         num_choices=20,
@@ -100,13 +100,13 @@ def test_mu():
     )
 
 
-def test_sigma():
+def sigma():
     m = Model()
 
     def get_result(grid_index, model_output):
         return np.argwhere(model_output[2][grid_index, :] == 1)[0][0]
 
-    test_something(
+    gen_plots(
         result_var_name='reservation_wage',
         choice_var_name='σ',
         num_choices=20,
@@ -119,13 +119,13 @@ def test_sigma():
     )
 
 
-def test_benefits():
+def benefits():
     m = Model()
 
     def get_result(grid_index, model_output):
         return np.argwhere(model_output[2][grid_index, :] == 1)[0][0]
 
-    test_something(
+    gen_plots(
         result_var_name='reservation_wage',
         choice_var_name='z',
         num_choices=20,
@@ -138,15 +138,15 @@ def test_benefits():
     )
 
 
-def test():
-    test_assets()
-    test_benefits()
-    test_beta()
-    test_mu()
-    test_sigma()
+def main():
+    assets()
+    benefits()
+    beta()
+    mu()
+    sigma()
 
 
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    test()
+    main()

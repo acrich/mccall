@@ -7,6 +7,7 @@ from model import Model
 from agent import generate_lifetime
 from test_consumption_savings import get_steady_state
 
+
 """
 changes in interest make potential future unemployment less threatening, but increases the benefit from higher assets in the future.
 so there are effects on a_opt_employed in both ways and we can't anticipate results.
@@ -188,7 +189,7 @@ def v_by_interest():
             plt.close()
 
 
-def validate():
+def main():
     unemployment_spells_by_interest()
     steady_state_by_interest()
     reservation_wage_by_interest()
@@ -201,4 +202,4 @@ def validate():
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    validate()
+    main()

@@ -29,7 +29,7 @@ DIR = '/home/shay/projects/quantecon/results/unemployment_benefits/'
 
 # a_opt_unemployed by assets, given several levels of benefits
 # a_opt_employed by assets, given several levels of benefits (should stay the same)
-def test_savings():
+def savings():
     z_choices = np.linspace(0, 10, 20)
     a_choice_indices = np.arange(0, 15, 5)
     w_choice_indices = np.arange(0, 10, 2)
@@ -54,7 +54,7 @@ def test_savings():
             plt.close()
 
 
-def test_benefits():
+def benefits():
     z_choices = np.linspace(0, 10, 20)
     reservation_wages = []
     wages_per_z = []
@@ -98,12 +98,12 @@ def test_benefits():
     plt.close()
 
 
-def test():
-    test_savings()
-    test_benefits()
+def main():
+    savings()
+    benefits()
 
 
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    test()
+    main()

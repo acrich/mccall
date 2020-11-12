@@ -40,6 +40,7 @@ indeed we see that consumption increases with assets, which means that agents
 eat away savings, thus smoothing consumption to a certain extent.
 """
 
+
 DIR = '/home/shay/projects/quantecon/results/savings_and_consumption/'
 
 
@@ -74,7 +75,7 @@ def get_steady_state(vector):
     return set(steady_states)
 
 
-def test_ss_by_wage(m, a_opt_employed):
+def ss_by_wage(m, a_opt_employed):
     steady_states = []
     for j, w in enumerate(m.w_grid):
         ss = get_steady_state(a_opt_employed[:, j])
@@ -92,7 +93,7 @@ def test_ss_by_wage(m, a_opt_employed):
     plt.close()
 
 
-def test_savings_is_increasing_in_current_assets(m, a_opt_employed):
+def savings_is_increasing_in_current_assets(m, a_opt_employed):
     for j, w in enumerate(m.w_grid):
         assert(is_monotonically_increasing(a_opt_employed[:, j]))
 
@@ -110,7 +111,7 @@ def test_savings_is_increasing_in_current_assets(m, a_opt_employed):
         plt.close()
 
 
-def test_consumption_by_assets(m, a_opt_employed):
+def consumption_by_assets(m, a_opt_employed):
     w_index_choices = np.arange(0, 20)
     for grid_index in w_index_choices:
         w = m.w_grid[grid_index]
@@ -128,7 +129,7 @@ def test_consumption_by_assets(m, a_opt_employed):
         plt.close()
 
 
-def test_consumption_by_wage(m, a_opt_employed):
+def consumption_by_wage(m, a_opt_employed):
     a_index_choices = np.arange(0, 20)
     for grid_index in a_index_choices:
         a = m.a_grid[grid_index]
@@ -146,16 +147,16 @@ def test_consumption_by_wage(m, a_opt_employed):
         plt.close()
 
 
-def test():
+def main():
     m = Model()
     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
-    test_ss_by_wage(m, a_opt_employed)
-    test_savings_is_increasing_in_current_assets(m, a_opt_employed)
-    test_consumption_by_assets(m, a_opt_employed)
+    ss_by_wage(m, a_opt_employed)
+    savings_is_increasing_in_current_assets(m, a_opt_employed)
+    consumption_by_assets(m, a_opt_employed)
 
 
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    test()
+    main()

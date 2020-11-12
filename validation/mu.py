@@ -6,6 +6,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from test_consumption_savings import get_steady_state
 
+
 """
 changes in mean wage make potential future unemployment less threatening, but increases the benefit from higher assets in the future.
 so there are effects on a_opt_employed in both ways and we can't anticipate results.
@@ -182,7 +183,7 @@ def v_by_mu():
             plt.close()
 
 
-def validate():
+def main():
     unemployment_spells_by_mu()
     steady_state_by_mu()
     reservation_wage_by_mu()
@@ -195,4 +196,4 @@ def validate():
 if __name__ == '__main__':
     if not os.path.exists(DIR):
         os.makedirs(DIR)
-    validate()
+    main()
