@@ -140,7 +140,7 @@ class Model:
         a_opt_employed = a_opt_employed.astype(int64)
         for i, a in enumerate(a_grid):
             for j, w in enumerate(self.w_grid):
-                consumption = w + a_grid[i]*(1 + self.r) - a_grid - self.c_hat
+                consumption = w + a_grid[i]*(1 + self.r) - a_grid + self.c_hat
 
                 negative_elements = np.where(consumption < 0)[0]
                 if len(negative_elements) > 0:
@@ -171,7 +171,7 @@ class Model:
         accept_or_reject = np.empty((self.a_size, self.w_size))
 
         for i in range(self.a_size):
-            consumption = self.z + a_grid[i]*(1 + self.r) - a_grid - self.c_hat
+            consumption = self.z + a_grid[i]*(1 + self.r) - a_grid + self.c_hat
 
             negative_elements = np.where(consumption < 0)[0]
             if len(negative_elements) > 0:

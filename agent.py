@@ -115,7 +115,7 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
 
         if is_employed:
             a[t+1] = model.a_grid[a_opt_employed[a_index, w_index]]
-            consumption[t] = w_t + a[t] - a[t+1] - model.c_hat
+            consumption[t] = w_t + a[t]*(1 + model.r) - a[t+1] + model.c_hat
             is_employed = is_separated_at[t]
             if not is_employed:
                 separations.append(t)
@@ -124,12 +124,13 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
             w_t = offered_wage_at[t]
             w_index = find_nearest_index(model.w_grid, w_t)
             is_employed = accept_or_reject[a_index, w_index]
+            employment_spells[t] = is_employed
             if is_employed:
                 a[t+1] = model.a_grid[a_opt_employed[a_index, w_index]]
-                consumption[t] = w_t + a[t] - a[t+1] - model.c_hat
+                consumption[t] = w_t + a[t]*(1 + model.r) - a[t+1] + model.c_hat
             else:
                 a[t+1] = model.a_grid[a_opt_unemployed[a_index, w_index]]
-                consumption[t] = model.z + a[t] - a[t+1] - model.c_hat
+                consumption[t] = model.z + a[t]*(1 + model.r) - a[t+1] + model.c_hat
         u_t[t] = model.u(consumption[t])
         realized_wage[t] = w_t
 
