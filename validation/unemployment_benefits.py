@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 from separations import binomial_draws
@@ -23,16 +24,41 @@ benefits above a certain threshold nullify the savings motive, because ism<1. we
 """
 
 
-def test():
+DIR = '/home/shay/projects/quantecon/results/unemployment_benefits/'
+
+
+# a_opt_unemployed by assets, given several levels of benefits
+# a_opt_employed by assets, given several levels of benefits (should stay the same)
+def test_savings():
+    z_choices = np.linspace(0, 10, 20)
+    a_choice_indices = np.arange(0, 15, 5)
+    w_choice_indices = np.arange(0, 10, 2)
+    savings_employed = np.empty((len(a_choice_indices), len(w_choice_indices), len(z_choices)))
+    savings_unemployed = np.empty((len(a_choice_indices), len(w_choice_indices), len(z_choices)))
+    for z_choice_index, z in enumerate(z_choices):
+        m = Model(z=z)
+        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        for a_choice_index, a_grid_index in enumerate(a_choice_indices):
+            for w_choice_index, w_grid_index in enumerate(w_choice_indices):
+                savings_employed[a_choice_index, w_choice_index, z_choice_index] = a_opt_employed[a_grid_index, w_grid_index]
+                savings_unemployed[a_choice_index, w_choice_index, z_choice_index] = a_opt_unemployed[a_grid_index, w_grid_index]
+
+    for a_choice_index, a_grid_index in enumerate(a_choice_indices):
+        for w_choice_index, w_grid_index in enumerate(w_choice_indices):
+            fig, ax = plt.subplots()
+            ax.set_xlabel('unemployment benefits')
+            ax.set_ylabel('next period assets index for agent with {a} assets and {w} wage'.format(a=a, w=w))
+            ax.plot(z_choices, savings_employed[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C1", label=f"savings when employed")
+            ax.plot(z_choices, savings_unemployed[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C2", label=f"savings when unemployed")
+            plt.savefig(DIR + 'savings_per_c_hat_with_{w}_wage_and_{a}_assets.png'.format(a=a, w=w))
+            plt.close()
+
+
+def test_benefits():
     z_choices = np.linspace(0, 10, 20)
     reservation_wages = []
     wages_per_z = []
     assets_per_z = []
-    savings_top_left = []
-    savings_top_right = []
-    savings_bottom_left = []
-    savings_bottom_right = []
-    savings_middle = []
     for z in z_choices:
         m = Model(z=z)
         v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
@@ -46,67 +72,38 @@ def test():
         wages_per_z.append(np.mean(np.asarray(wages)))
         assets_per_z.append(np.mean(assets))
         reservation_wages.append(np.argwhere(accept_or_reject[0, :] == 1)[0][0])
-        savings_top_left.append(a_opt_employed[1, 1])
-        savings_top_right.append(a_opt_employed[1, m.w_size - 1])
-        savings_bottom_left.append(a_opt_employed[m.a_size - 1, 0])
-        savings_bottom_right.append(a_opt_employed[m.a_size - 1, m.w_size - 1])
-        savings_middle.append(a_opt_employed[50, 50])
 
     fig, ax = plt.subplots()
     ax.set_xlabel('unemployment benefits')
     ax.set_ylabel('reservation wage (with no assets)')
 
     ax.plot(z_choices, reservation_wages, '-', alpha=0.4, color="C1", label=f"$reservation wage with no assets$")
-    plt.show()
+    plt.savefig(DIR + 'reservation_wage_by_benefits_no_assets.png')
+    plt.close()
 
     fig, ax = plt.subplots()
     ax.set_xlabel('unemployment benefits')
     ax.set_ylabel('wages')
 
     ax.plot(z_choices, wages_per_z, '-', alpha=0.4, color="C1", label=f"$mean wage$")
-    plt.show()
+    plt.savefig(DIR + 'wage_by_benefits.png')
+    plt.close()
 
     fig, ax = plt.subplots()
     ax.set_xlabel('unemployment benefits')
     ax.set_ylabel('assets')
 
     ax.plot(z_choices, assets_per_z, '-', alpha=0.4, color="C1", label=f"$mean asset level at T$")
-    plt.show()
+    plt.savefig(DIR + 'assets_at_T_by_benefits.png')
+    plt.close()
 
-    fig, ax = plt.subplots()
-    ax.set_xlabel('unemployment benefits')
-    ax.set_ylabel('next period assets index for agent with no assets and low wage')
 
-    ax.plot(z_choices, savings_top_left, '-', alpha=0.4, color="C1", label=f"")
-    plt.show()
+def test():
+    test_savings()
+    test_benefits()
 
-    fig, ax = plt.subplots()
-    ax.set_xlabel('unemployment benefits')
-    ax.set_ylabel('next period assets index for agent with no assets and right wage')
-
-    ax.plot(z_choices, savings_top_right, '-', alpha=0.4, color="C1", label=f"")
-    plt.show()
-
-    fig, ax = plt.subplots()
-    ax.set_xlabel('unemployment benefits')
-    ax.set_ylabel('next period assets index for agent with high assets and low wage')
-
-    ax.plot(z_choices, savings_bottom_left, '-', alpha=0.4, color="C1", label=f"")
-    plt.show()
-
-    fig, ax = plt.subplots()
-    ax.set_xlabel('unemployment benefits')
-    ax.set_ylabel('next period assets index for agent with high assets and high wage')
-
-    ax.plot(z_choices, savings_bottom_right, '-', alpha=0.4, color="C1", label=f"")
-    plt.show()
-
-    fig, ax = plt.subplots()
-    ax.set_xlabel('unemployment benefits')
-    ax.set_ylabel('next period assets index for agent with medium assets and medium wage')
-
-    ax.plot(z_choices, savings_middle, '-', alpha=0.4, color="C1", label=f"")
-    plt.show()
 
 if __name__ == '__main__':
+    if not os.path.exists(DIR):
+        os.makedirs(DIR)
     test()
