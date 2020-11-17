@@ -101,7 +101,7 @@ class Model:
         self.w_grid = np.linspace(w_min, w_max, self.w_size)
 
         a_min = 1e-10
-        a_max = 200
+        a_max = 100
         self.a_size = 100
         self.a_grid = np.linspace(a_min, a_max, self.a_size)
 

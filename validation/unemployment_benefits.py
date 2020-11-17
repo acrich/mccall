@@ -1,9 +1,10 @@
 import os
 import sys
 import numpy as np
-from separations import binomial_draws
 import matplotlib.pyplot as plt
 from numba import njit
+sys.path.append('/home/shay/projects/quantecon')
+from separations import binomial_draws
 from model import Model
 from wage_distribution import lognormal_draws
 from agent import generate_lifetime
@@ -37,7 +38,16 @@ def savings():
     savings_unemployed = np.empty((len(a_choice_indices), len(w_choice_indices), len(z_choices)))
     for z_choice_index, z in enumerate(z_choices):
         m = Model(z=z)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_employed = np.load('npy/a_opt_employed_at_{z}_z.npy'.format(z=z))
+            a_opt_unemployed = np.load('npy/a_opt_unemployed_at_{z}_z.npy'.format(z=z))
+            accept_or_reject = np.load('npy/accept_or_reject_at_{z}_z.npy'.format(z=z))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{z}_z.npy'.format(z=z), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{z}_z.npy'.format(z=z), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{z}_z.npy'.format(z=z), accept_or_reject)
+
         for a_choice_index, a_grid_index in enumerate(a_choice_indices):
             for w_choice_index, w_grid_index in enumerate(w_choice_indices):
                 savings_employed[a_choice_index, w_choice_index, z_choice_index] = a_opt_employed[a_grid_index, w_grid_index]
@@ -45,12 +55,15 @@ def savings():
 
     for a_choice_index, a_grid_index in enumerate(a_choice_indices):
         for w_choice_index, w_grid_index in enumerate(w_choice_indices):
+            a = m.a_grid[a_grid_index]
+            w = m.w_grid[w_grid_index]
             fig, ax = plt.subplots()
             ax.set_xlabel('unemployment benefits')
-            ax.set_ylabel('next period assets index for agent with {a} assets and {w} wage'.format(a=a, w=w))
+            ax.set_ylabel('next period assets index for agent with {a} assets and {w} wage'.format(a=round(a), w=round(w)))
             ax.plot(z_choices, savings_employed[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C1", label=f"savings when employed")
             ax.plot(z_choices, savings_unemployed[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C2", label=f"savings when unemployed")
-            plt.savefig(DIR + 'savings_per_c_hat_with_{w}_wage_and_{a}_assets.png'.format(a=a, w=w))
+            ax.legend(loc='lower right')
+            plt.savefig(DIR + 'savings_per_z_with_{w}_wage_and_{a}_assets.png'.format(a=round(a), w=round(w)))
             plt.close()
 
 
@@ -61,7 +74,16 @@ def benefits():
     assets_per_z = []
     for z in z_choices:
         m = Model(z=z)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_employed = np.load('npy/a_opt_employed_at_{z}_z.npy'.format(z=z))
+            a_opt_unemployed = np.load('npy/a_opt_unemployed_at_{z}_z.npy'.format(z=z))
+            accept_or_reject = np.load('npy/accept_or_reject_at_{z}_z.npy'.format(z=z))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{z}_z.npy'.format(z=z), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{z}_z.npy'.format(z=z), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{z}_z.npy'.format(z=z), accept_or_reject)
+
         wages = []
         assets = []
         T = 100
@@ -77,7 +99,7 @@ def benefits():
     ax.set_xlabel('unemployment benefits')
     ax.set_ylabel('reservation wage (with no assets)')
 
-    ax.plot(z_choices, reservation_wages, '-', alpha=0.4, color="C1", label=f"$reservation wage with no assets$")
+    ax.plot(z_choices, reservation_wages, '-', alpha=0.4, color="C3", label=f"$reservation wage with no assets$")
     plt.savefig(DIR + 'reservation_wage_by_benefits_no_assets.png')
     plt.close()
 
@@ -85,7 +107,7 @@ def benefits():
     ax.set_xlabel('unemployment benefits')
     ax.set_ylabel('wages')
 
-    ax.plot(z_choices, wages_per_z, '-', alpha=0.4, color="C1", label=f"$mean wage$")
+    ax.plot(z_choices, wages_per_z, '-', alpha=0.4, color="C2", label=f"$mean wage$")
     plt.savefig(DIR + 'wage_by_benefits.png')
     plt.close()
 

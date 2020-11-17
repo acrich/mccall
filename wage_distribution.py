@@ -10,11 +10,19 @@ N_points = 4000
 σ=0.7
 
 @njit
-def lognormal_draws(n=100, μ=1.5, σ=1.4, seed=1234):
+def lognormal_draws(n=100, μ=0.2, σ=1.2, seed=1234):
     np.random.seed(seed)
     z = np.random.randn(n)
+
     w_draws = np.exp(μ + σ * z) * 2
     return w_draws
+
+
+@njit
+def better_draws(n=100, μ=0.2, σ=1.2, seed=1234):
+    np.random.seed(seed)
+    s = np.random.normal(μ, σ, n)
+    return np.exp(s)
 
 
 def bimodal_draws(n=100, μ=1.5, σ=1.4, seed=1234):
@@ -30,12 +38,12 @@ def bimodal_draws(n=100, μ=1.5, σ=1.4, seed=1234):
 
 
 if __name__ == '__main__':
-    w = bimodal_draws(n=N_points, μ=μ, σ=σ)
+    w = lognormal_draws(n=N_points, μ=μ, σ=σ)
     average = np.mean(w)
     print(np.min(w))
     print(average)
     print(np.median(w))
     print(np.max(w))
 
-    count, bins, ignored = plt.hist(w, 100, density=True)
+    count, bins, ignored = plt.hist(w, 200, density=True)
     plt.show()

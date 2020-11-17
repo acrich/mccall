@@ -1,12 +1,15 @@
 import os
 import sys
 import numpy as np
-from separations import binomial_draws
 import matplotlib.pyplot as plt
 from numba import njit
+sys.path.append('/home/shay/projects/quantecon')
+
 from model import Model
+from separations import binomial_draws
 from wage_distribution import lognormal_draws
 from agent import generate_lifetime
+from steady_state import get_steady_state
 
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -59,17 +62,12 @@ def is_monotonically_increasing(vector):
 def ss_by_wage(m, a_opt_employed):
     steady_states = []
     for j, w in enumerate(m.w_grid):
-        ss = get_steady_state(a_opt_employed[:, j])
-        if len(ss) == 0:
-            raise Exception("couldn't find steady state for {}".format(j))
-        if len(ss) > 1:
-            print(ss)
-        steady_states.append(next(iter(ss)))
+        steady_states.append(get_steady_state(a_opt_employed[:, j]))
 
     fig, ax = plt.subplots()
     ax.set_xlabel('wage')
     ax.set_ylabel('steady-state assets')
-    ax.plot(m.w_grid, steady_states, '-', alpha=0.4, color="C1", label=f"$steady state assets$")
+    ax.plot(m.w_grid, steady_states, '-', alpha=0.4, color="C7", label=f"$steady state assets$")
     plt.savefig(DIR + 'steady_state_by_wage.png')
     plt.close()
 
@@ -83,12 +81,12 @@ def savings_is_increasing_in_current_assets(m, a_opt_employed):
         w = m.w_grid[grid_index]
         fig, ax = plt.subplots()
         ax.set_xlabel('current period assets')
-        ax.set_ylabel('next period assets with {w} wage'.format(w=w))
+        ax.set_ylabel('next period assets with {w} wage'.format(w=round(w)))
 
         ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label=f"$a$")
         ax.plot(m.a_grid, a_opt_employed[:, grid_index], '-', alpha=0.4, color="C2", label=f"$a'$")
         ax.legend(loc='upper right')
-        plt.savefig(DIR + 'savings_by_current_assets_at_{w}_wage.png'.format(w=w))
+        plt.savefig(DIR + 'savings_by_current_assets_at_{w}_wage.png'.format(w=round(w)))
         plt.close()
 
 
@@ -103,10 +101,10 @@ def consumption_by_assets(m, a_opt_employed):
 
         fig, ax = plt.subplots()
         ax.set_xlabel('current period assets')
-        ax.set_ylabel('consumption given {w} wage'.format(w=w))
+        ax.set_ylabel('consumption given {w} wage'.format(w=round(w)))
 
         ax.plot(m.a_grid, consumption, '-', alpha=0.4, color="C2", label=f"$c$")
-        plt.savefig(DIR + 'consumption_by_current_assets_at_{w}_wage.png'.format(w=w))
+        plt.savefig(DIR + 'consumption_by_current_assets_at_{w}_wage.png'.format(w=round(w)))
         plt.close()
 
 
@@ -121,10 +119,10 @@ def consumption_by_wage(m, a_opt_employed):
 
         fig, ax = plt.subplots()
         ax.set_xlabel('wage')
-        ax.set_ylabel('consumption given {a} assets'.format(w=w))
+        ax.set_ylabel('consumption given {a} assets'.format(a=round(a)))
 
         ax.plot(m.w_grid, consumption, '-', alpha=0.4, color="C2", label=f"$c$")
-        plt.savefig(DIR + 'consumption_by_wage_at_{a}_assets.png'.format(a=a))
+        plt.savefig(DIR + 'consumption_by_wage_at_{a}_assets.png'.format(a=round(a)))
         plt.close()
 
 
@@ -133,11 +131,24 @@ def main():
         os.makedirs(DIR)
 
     m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+    try:
+        v = np.load('npy/v.npy')
+        h = np.load('npy/h.npy')
+        accept_or_reject = np.load('npy/accept_or_reject.npy')
+        a_opt_unemployed = np.load('npy/a_opt_unemployed.npy')
+        a_opt_employed = np.load('npy/a_opt_employed.npy')
+    except IOError:
+        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        np.save('npy/v.npy', v)
+        np.save('npy/h.npy', h)
+        np.save('npy/accept_or_reject.npy', accept_or_reject)
+        np.save('npy/a_opt_unemployed.npy', a_opt_unemployed)
+        np.save('npy/a_opt_employed.npy', a_opt_employed)
 
     ss_by_wage(m, a_opt_employed)
     savings_is_increasing_in_current_assets(m, a_opt_employed)
     consumption_by_assets(m, a_opt_employed)
+    consumption_by_wage(m, a_opt_employed)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,9 @@
 import os
-from model_with_risk import Model
+from model import Model
 import numpy as np
 import matplotlib.pyplot as plt
 
-from validation.steady_state import get_steady_state, get_steady_states
+from steady_state import get_steady_state, get_steady_states
 
 
 """
@@ -22,9 +22,7 @@ DIR = '/home/shay/projects/quantecon/results/employed_vs_unemployed/'
 
 
 # ss by wage for employed/unemployed
-def ss_by_wage():
-    m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+def ss_by_wage(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
     steady_states_employed = np.empty_like(m.w_grid)
     steady_states_unemployed = np.empty_like(m.w_grid)
     for j, w in enumerate(m.w_grid):
@@ -34,17 +32,14 @@ def ss_by_wage():
     fig, ax = plt.subplots()
     ax.set_xlabel('wage')
     ax.set_ylabel('steady-state assets')
-    ax.plot(m.w_grid, steady_states_employed, '-', alpha=0.4, color="C1", label="$ss employed$")
-    ax.plot(m.w_grid, steady_states_unemployed, '-', alpha=0.4, color="C1", label="$ss unemployed$")
-    ax.legend(loc='upper right')
+    ax.plot(m.w_grid, steady_states_employed, '-', alpha=0.4, color="C7", label="employed")
+    ax.plot(m.w_grid, steady_states_unemployed, '-', alpha=0.4, color="C8", label="unemployed")
+    ax.legend(loc='lower right')
     plt.savefig(DIR + 'steady_state_by_wage_employed_or_not.png')
     plt.close()
 
 
-def steady_states():
-    m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
-
+def steady_states(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
     w_choice_indices = np.arange(0, 6, 2)
     for w_grid_index in w_choice_indices:
         w = m.w_grid[w_grid_index]
@@ -52,59 +47,52 @@ def steady_states():
 
         fig, ax = plt.subplots()
         ax.set_xlabel('current period assets')
-        ax.set_ylabel('next period assets with {w} wage'.format(w=w))
+        ax.set_ylabel('next period assets with {w} wage'.format(w=round(w)))
 
         ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="$a$")
         ax.plot(m.a_grid, a_opt_employed[:, w_grid_index], '-', alpha=0.4, color="C2", label="$a_e'$")
         for steady_state in steady_states:
             plt.axvline(x=steady_state)
-        plt.savefig(DIR + 'steady_states_at_{w}_wage.png'.format(w=w))
+        plt.savefig(DIR + 'steady_states_at_{w}_wage.png'.format(w=round(w)))
         plt.close()
 
 
 # next period assets by current period assets for employed/unemployed, below reservation wage
 # next period assets by current period assets for employed/unemployed, at reservation wage
 # next period assets by current period assets for employed/unemployed, above reservation wage
-def savings_by_assets():
-    m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
-
-    w_choice_indices = np.arange(0, 6, 2)
+def savings_by_assets(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
+    w_choice_indices = np.array([0, 10, 30])
     for grid_index in w_choice_indices:
         w = m.w_grid[grid_index]
         fig, ax = plt.subplots()
         ax.set_xlabel('current period assets')
-        ax.set_ylabel('next period assets with {w} wage'.format(w=w))
+        ax.set_ylabel('next period assets with {w} wage'.format(w=round(w)))
         reservation_wage = np.empty_like(m.a_grid)
         for i, a in enumerate(m.a_grid):
             reservation_wage[i] = np.argwhere(accept_or_reject[i, :]  == 1)[0][0]
 
         ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="$a$")
         ax.plot(m.a_grid, a_opt_employed[:, grid_index], '-', alpha=0.4, color="C2", label="$a_e'$")
-        ax.plot(m.a_grid, a_opt_unemployed[:, grid_index], '-', alpha=0.4, color="C3", label="$a_u'$")
-        ax.plot(m.a_grid, reservation_wage, '-', alpha=0.4, color="C4", label="$\overline{w}$")
+        ax.plot(m.a_grid, a_opt_unemployed[:, grid_index], '-', alpha=0.4, color="C4", label="$a_u'$")
         try:
-            v = np.where(reservation_wage == w)[0][0]
+            v = np.where(reservation_wage == grid_index)[0][0]
             plt.axvline(x=v)
         except IndexError:
             pass
-        ax.legend(loc='upper right')
-        plt.savefig(DIR + 'savings_by_current_assets_at_{w}_wage_employed_vs_unemployed.png'.format(w=w))
+        ax.legend(loc='lower right')
+        plt.savefig(DIR + 'savings_by_current_assets_at_{w}_wage_employed_vs_unemployed.png'.format(w=round(w)))
         plt.close()
 
 
 # a_opt_unemployed by wage, given asset level (mark vertical line for reservation wage)
 # a_opt_employed by wage, given asset level (mark vertical line for reservation wage)
-def savings_by_wage():
-    m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
-
+def savings_by_wage(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
     a_choice_indices = np.arange(0, 20, 4)
     for grid_index in a_choice_indices:
         a = m.a_grid[grid_index]
         fig, ax = plt.subplots()
         ax.set_xlabel('wage')
-        ax.set_ylabel('next period assets with {a} assets'.format(a=a))
+        ax.set_ylabel('next period assets with {a} assets'.format(a=round(a)))
         reservation_wage = np.argwhere(accept_or_reject[grid_index, :]  == 1)[0][0]
 
         ax.plot(m.w_grid, a_opt_employed[grid_index, :], '-', alpha=0.4, color="C2", label="$a_e'$")
@@ -114,8 +102,8 @@ def savings_by_wage():
             plt.axvline(x=v)
         except IndexError:
             pass
-        ax.legend(loc='upper right')
-        plt.savefig(DIR + 'savings_by_wage_at_{a}_assets_employed_vs_unemployed.png'.format(a=a))
+        ax.legend(loc='lower right')
+        plt.savefig(DIR + 'savings_by_wage_at_{a}_assets_employed_vs_unemployed.png'.format(a=round(a)))
         plt.close()
 
 
@@ -123,10 +111,22 @@ def main():
     if not os.path.exists(DIR):
         os.makedirs(DIR)
 
-    ss_by_wage()
-    steady_states()
-    savings_by_assets()
-    savings_by_wage()
+    m = Model()
+
+    try:
+        accept_or_reject = np.load('npy/accept_or_reject.npy')
+        a_opt_unemployed = np.load('npy/a_opt_unemployed.npy')
+        a_opt_employed = np.load('npy/a_opt_employed.npy')
+    except IOError:
+        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        np.save('npy/accept_or_reject.npy', accept_or_reject)
+        np.save('npy/a_opt_unemployed.npy', a_opt_unemployed)
+        np.save('npy/a_opt_employed.npy', a_opt_employed)
+
+    ss_by_wage(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
+    steady_states(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
+    savings_by_assets(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
+    savings_by_wage(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
 
 
 if __name__ == '__main__':

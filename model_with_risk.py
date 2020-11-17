@@ -90,7 +90,7 @@ class Model:
         # wage grid parameters
         w_min = 1e-10
         w_max = np.max(self.w_draws)
-        self.w_size = 100
+        self.w_size = 30
 
         # print("wage grid is from %f to %f, with size %d, and the average wage is %r" % (
         #     w_min,
@@ -101,7 +101,7 @@ class Model:
         self.w_grid = np.linspace(w_min, w_max, self.w_size)
 
         a_min = 1e-10
-        a_max = 200
+        a_max = 100
         self.a_size = 100
         self.a_grid = np.linspace(a_min, a_max, self.a_size)
 

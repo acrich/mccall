@@ -1,7 +1,10 @@
 import os
-from model_with_risk import Model
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
+
+sys.path.append('/home/shay/projects/quantecon')
+from model import Model
 
 
 """
@@ -35,7 +38,14 @@ def savings():
     savings = np.empty((len(a_choice_indices), len(w_choice_indices), len(c_hat_choices)))
     for c_hat_index, c_hat in enumerate(c_hat_choices):
         m = Model(c_hat=c_hat)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_employed = np.load('npy/a_opt_employed_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), accept_or_reject)
+
         for a_choice_index, a_grid_index in enumerate(a_choice_indices):
             for w_choice_index, w_grid_index in enumerate(w_choice_indices):
                 savings[a_choice_index, w_choice_index, c_hat_index] = m.a_grid[a_opt_employed[a_grid_index, w_grid_index]]
@@ -46,9 +56,9 @@ def savings():
             w = m.w_grid[w_grid_index]
             fig, ax = plt.subplots()
             ax.set_xlabel('minimal consumption $(\overline{c})$')
-            ax.set_ylabel('savings with {a} assets and {w} wage'.format(a=a, w=w))
+            ax.set_ylabel('savings with {a} assets and {w} wage'.format(a=round(a), w=round(w)))
             ax.plot(c_hat_choices, savings[a_choice_index, w_choice_index], '-', alpha=0.4, color="C1", label=f"")
-            plt.savefig(DIR + 'savings_per_c_hat_with_{w}_wage_and_{a}_assets.png'.format(a=a, w=w))
+            plt.savefig(DIR + 'savings_per_c_hat_with_{w}_wage_and_{a}_assets.png'.format(a=round(a), w=round(w)))
             plt.close()
 
 
@@ -59,7 +69,14 @@ def reservation_wage():
     reservation_wages = np.empty((len(a_choice_indices), len(c_hat_choices)))
     for c_hat_index, c_hat in enumerate(c_hat_choices):
         m = Model(c_hat=c_hat)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            accept_or_reject = np.load('npy/accept_or_reject_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), accept_or_reject)
+
         for a_choice_index, a_grid_index in enumerate(a_choice_indices):
             reservation_wages[a_choice_index, c_hat_index] = np.argwhere(accept_or_reject[a_grid_index, :]  == 1)[0][0]
 
@@ -67,9 +84,9 @@ def reservation_wage():
         a = m.a_grid[a_grid_index]
         fig, ax = plt.subplots()
         ax.set_xlabel('minimal consumption $(\overline{c})$')
-        ax.set_ylabel('reservation wage with {a} assets'.format(a=a))
-        ax.plot(c_hat_choices, reservation_wages[a_choice_index, :], '-', alpha=0.4, color="C1", label=f"")
-        plt.savefig(DIR + 'reservation_wage_per_c_hat_with_{a}_assets.png'.format(a=a))
+        ax.set_ylabel('reservation wage with {a} assets'.format(a=round(a)))
+        ax.plot(c_hat_choices, reservation_wages[a_choice_index, :], '-', alpha=0.4, color="C3", label=f"")
+        plt.savefig(DIR + 'reservation_wage_per_c_hat_with_{a}_assets.png'.format(a=round(a)))
         plt.close()
 
 
@@ -81,7 +98,14 @@ def burn_rate():
     savings = np.empty((len(a_choice_indices), len(w_choice_indices), len(c_hat_choices)))
     for c_hat_index, c_hat in enumerate(c_hat_choices):
         m = Model(c_hat=c_hat)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_unemployed = np.load('npy/a_opt_unemployed_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{c_hat}_c_hat.npy'.format(c_hat=c_hat), accept_or_reject)
+
         for a_choice_index, a_grid_index in enumerate(a_choice_indices):
             for w_choice_index, w_grid_index in enumerate(w_choice_indices):
                 savings[a_choice_index, w_choice_index, c_hat_index] = m.a_grid[a_opt_unemployed[a_grid_index, w_grid_index]]
@@ -92,9 +116,9 @@ def burn_rate():
             w = m.w_grid[w_grid_index]
             fig, ax = plt.subplots()
             ax.set_xlabel('minimal consumption $(\overline{c})$')
-            ax.set_ylabel('burn rate with {a} assets and {w} wage'.format(a=a, w=w))
+            ax.set_ylabel('burn rate with {a} assets and {w} wage'.format(a=round(a), w=round(w)))
             ax.plot(c_hat_choices, savings[a_choice_index, w_choice_index], '-', alpha=0.4, color="C1", label=f"")
-            plt.savefig(DIR + 'burn_rate_per_c_hat_with_{w}_wage_and_{a}_assets.png'.format(a=a, w=w))
+            plt.savefig(DIR + 'burn_rate_per_c_hat_with_{w}_wage_and_{a}_assets.png'.format(a=round(a), w=round(w)))
             plt.close()
 
 

@@ -4,5 +4,6 @@ import importlib
 tests = os.listdir('validation')
 
 for test in tests:
-   module = importlib.import_module('validation.' + test.split('.')[0])
-   module.main()
+    print(test)
+    module = importlib.import_module('validation.' + test.split('.')[0])
+    module.main()

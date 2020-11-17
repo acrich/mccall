@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from validation.steady_state import get_steady_state
+from steady_state import get_steady_state
 
 """
 higher beta means a_opt_employed and a_opt_unemployed should both be higher.
@@ -15,8 +15,8 @@ DIR = '/home/shay/projects/quantecon/results/beta/'
 
 
 def steady_state_by_beta():
-    w_choice_indices = np.arange(0, 10, 2)
-    beta_choices = np.linspace(0.5, 0.995, 10)
+    w_choice_indices = np.array([6, 9, 15, 21])
+    beta_choices = np.linspace(0.8, 0.99, 10)
     steady_states = np.empty((len(w_choice_indices), len(beta_choices)))
     for beta_index, beta in enumerate(beta_choices):
         m = Model(β=beta)
@@ -30,16 +30,16 @@ def steady_state_by_beta():
         fig, ax = plt.subplots()
         ax.set_xlabel('discount factor β')
         ax.set_ylabel('steady-state assets')
-        ax.plot(beta_choices, steady_states[w_choice_index, :], '-', alpha=0.4, color="C1", label="steady state assets")
-        plt.savefig(DIR + 'steady_state_by_beta_at_{w}_wage.png'.format(w=w))
+        ax.plot(beta_choices, steady_states[w_choice_index, :], '-', alpha=0.4, color="C7", label="steady state assets")
+        plt.savefig(DIR + 'steady_state_by_beta_at_{w}_wage.png'.format(w=round(w)))
         plt.close()
 
 
 
 def savings_by_beta():
     """ i don't trust steady-states because there are too many of them. """
-    w_choice_indices = np.arange(0, 10, 2)
-    beta_choices = np.linspace(0.05, 0.95, 18)
+    w_choice_indices = np.array([0, 50])
+    beta_choices = np.array([0.8, 0.99])
     m = Model()
     savings = np.empty((len(w_choice_indices), len(beta_choices), m.a_size))
     for beta_index, beta in enumerate(beta_choices):
@@ -56,13 +56,13 @@ def savings_by_beta():
             ax.set_xlabel('current period assets')
             ax.set_ylabel('next period assets')
             ax.plot(m.a_grid, savings[w_choice_index, beta_index], '-', alpha=0.4, color="C1", label="next period assets")
-            plt.savefig(DIR + 'savings_at_{w}_wage_and_{beta}_beta.png'.format(w=w, beta=beta))
+            plt.savefig(DIR + 'savings_at_{w}_wage_and_{beta}_beta.png'.format(w=round(w), beta=beta))
             plt.close()
 
 
 def unsaving_by_beta():
-    w_choice_indices = np.arange(0, 10, 2)
-    beta_choices = np.linspace(0.05, 0.95, 18)
+    w_choice_indices = np.array([0, 50])
+    beta_choices = np.array([0.8, 0.99])
     m = Model()
     savings = np.empty((len(w_choice_indices), len(beta_choices), m.a_size))
     for beta_index, beta in enumerate(beta_choices):
@@ -79,12 +79,12 @@ def unsaving_by_beta():
             ax.set_xlabel('current period assets')
             ax.set_ylabel('next period assets')
             ax.plot(m.a_grid, savings[w_choice_index, beta_index], '-', alpha=0.4, color="C1", label="next period assets")
-            plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{beta}_beta.png'.format(w=w, beta=beta))
+            plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{beta}_beta.png'.format(w=round(w), beta=beta))
             plt.close()
 
 
 def reservation_wage_by_beta():
-    beta_choices = np.linspace(0.5, 0.995, 10)
+    beta_choices = np.linspace(0.5, 0.99, 10)
     a_choice_indices = np.arange(0, 15, 5)
     reservation_wages = np.empty((len(a_choice_indices), len(beta_choices)))
 
@@ -98,16 +98,16 @@ def reservation_wage_by_beta():
         a = m.a_grid[a_grid_index]
         fig, ax = plt.subplots()
         ax.set_xlabel('discount factor β')
-        ax.set_ylabel('reservation wage with {a} assets'.format(a=a))
-        ax.plot(beta_choices, reservation_wages[a_choice_index, :], '-', alpha=0.4, color="C1", label=f"")
-        plt.savefig(DIR + 'reservation_wage_per_beta_with_{a}_assets.png'.format(a=a))
+        ax.set_ylabel('reservation wage with {a} assets'.format(a=round(a)))
+        ax.plot(beta_choices, reservation_wages[a_choice_index, :], '-', alpha=0.4, color="C3", label=f"")
+        plt.savefig(DIR + 'reservation_wage_per_beta_with_{a}_assets.png'.format(a=round(a)))
         plt.close()
 
 
 def h_by_beta():
-    beta_choices = np.linspace(0.5, 0.995, 10)
-    w_choice_indices = np.arange(0, 10, 2)
-    a_choice_indices = np.arange(0, 15, 5)
+    beta_choices = np.linspace(0.8, 0.99, 10)
+    w_choice_indices = np.arange(0, 20, 5)
+    a_choice_indices = np.arange(0, 100, 25)
     h_results = np.empty((len(a_choice_indices), len(w_choice_indices), len(beta_choices)))
 
     for beta_index, beta in enumerate(beta_choices):
@@ -123,16 +123,16 @@ def h_by_beta():
             w = m.w_grid[w_grid_index]
             fig, ax = plt.subplots()
             ax.set_xlabel('discount factor β')
-            ax.set_ylabel('h (utility in unemployment) with {a} assets and {w} wage'.format(a=a, w=w))
-            ax.plot(beta_choices, h_results[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C1", label=f"")
-            plt.savefig(DIR + 'h_per_beta_with_{a}_assets_and_{w}_wage.png'.format(a=a, w=w))
+            ax.set_ylabel('h (utility in unemployment) with {a} assets and {w} wage'.format(a=round(a), w=round(w)))
+            ax.plot(beta_choices, h_results[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C5", label=f"")
+            plt.savefig(DIR + 'h_per_beta_with_{a}_assets_and_{w}_wage.png'.format(a=round(a), w=round(w)))
             plt.close()
 
 
 def v_by_beta():
-    beta_choices = np.linspace(0.5, 0.995, 10)
-    w_choice_indices = np.arange(0, 10, 2)
-    a_choice_indices = np.arange(0, 15, 5)
+    beta_choices = np.linspace(0.8, 0.99, 10)
+    w_choice_indices = np.arange(0, 20, 5)
+    a_choice_indices = np.arange(0, 100, 25)
     v_results = np.empty((len(a_choice_indices), len(w_choice_indices), len(beta_choices)))
 
     for beta_index, beta in enumerate(beta_choices):
@@ -148,9 +148,9 @@ def v_by_beta():
             w = m.w_grid[w_grid_index]
             fig, ax = plt.subplots()
             ax.set_xlabel('discount factor β')
-            ax.set_ylabel('v (utility in employment) with {a} assets and {w} wage'.format(a=a, w=w))
-            ax.plot(beta_choices, v_results[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C1", label=f"")
-            plt.savefig(DIR + 'v_per_beta_with_{a}_assets_and_{w}_wage.png'.format(a=a, w=w))
+            ax.set_ylabel('v (utility in employment) with {a} assets and {w} wage'.format(a=round(a), w=round(w)))
+            ax.plot(beta_choices, v_results[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C6", label=f"")
+            plt.savefig(DIR + 'v_per_beta_with_{a}_assets_and_{w}_wage.png'.format(a=round(a), w=round(w)))
             plt.close()
 
 

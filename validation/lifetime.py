@@ -28,7 +28,20 @@ def main():
         os.makedirs(DIR)
 
     m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+    try:
+        v = np.load('npy/v.npy')
+        h = np.load('npy/h.npy')
+        accept_or_reject = np.load('npy/accept_or_reject.npy')
+        a_opt_unemployed = np.load('npy/a_opt_unemployed.npy')
+        a_opt_employed = np.load('npy/a_opt_employed.npy')
+    except IOError:
+        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        np.save('npy/v.npy', v)
+        np.save('npy/h.npy', h)
+        np.save('npy/accept_or_reject.npy', accept_or_reject)
+        np.save('npy/a_opt_unemployed.npy', a_opt_unemployed)
+        np.save('npy/a_opt_employed.npy', a_opt_employed)
+
     a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=m.T, a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
 
     # a increases when employment_spells is set, and decreases when it's not.
@@ -41,6 +54,7 @@ def main():
     ax.set_xlabel('periods')
     ax.plot(range(m.T), change_in_assets, '-', alpha=0.4, color="C3", label="change from last period assets")
     ax.plot(range(m.T), employment_spells, '-', alpha=0.4, color="C4", label="is employed")
+    ax.legend(loc='lower right')
     plt.savefig(DIR + 'change_in_assets_and_employment_status.png')
     plt.close()
 
@@ -54,6 +68,7 @@ def main():
     ax.set_xlabel('periods')
     ax.plot(range(m.T), a, '-', alpha=0.4, color="C3", label="asset level")
     ax.plot(range(m.T), w, '-', alpha=0.4, color="C4", label="wage")
+    ax.legend(loc='lower right')
     plt.savefig(DIR + 'assets_and_realized_wage.png')
     plt.close()
 
@@ -75,6 +90,7 @@ def main():
     ax.set_xlabel('periods')
     ax.plot(range(m.T), consumption, '-', alpha=0.4, color="C3", label="consumption")
     ax.plot(range(m.T), w, '-', alpha=0.4, color="C4", label="wage")
+    ax.legend(loc='lower right')
     plt.savefig(DIR + 'consumption_and_wage.png')
     plt.close()
 

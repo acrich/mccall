@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from validation.steady_state import get_steady_states
+from steady_state import get_steady_states
 
 
 """
@@ -17,10 +17,8 @@ below the reservation wage, h should be higher than v, and also constant on that
 DIR = '/home/shay/projects/quantecon/results/utility/'
 
 
-def utility_by_assets():
-    w_choice_indices = np.arange(0, 10, 2)
-    m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+def utility_by_assets(m, v, h, a_opt_employed):
+    w_choice_indices = np.arange(10, 20, 2)
 
     for w_choice_index, w_grid_index in enumerate(w_choice_indices):
         w = m.w_grid[w_grid_index]
@@ -37,10 +35,8 @@ def utility_by_assets():
         plt.close()
 
 
-def utility_by_wage():
+def utility_by_wage(m, v, h, accept_or_reject):
     a_choice_indices = np.arange(0, 15, 5)
-    m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
     for a_choice_index, a_grid_index in enumerate(a_choice_indices):
         a = m.a_grid[a_grid_index]
@@ -51,8 +47,8 @@ def utility_by_wage():
         ax.plot(m.w_grid, v[a_grid_index, :], '-', alpha=0.4, color="C2", label="v({a}, :)".format(a=round(a)))
         try:
             reservation_wage = np.argwhere(accept_or_reject[a_grid_index, :]  == 1)[0][0]
-            v = np.where(reservation_wage == m.w_grid)[0][0]
-            plt.axvline(x=v)
+            t = np.where(reservation_wage == range(m.w_size))[0][0]
+            plt.axvline(x=t)
         except IndexError:
             pass
         ax.legend(loc='lower right')
@@ -64,8 +60,24 @@ def main():
     if not os.path.exists(DIR):
         os.makedirs(DIR)
 
-    utility_by_assets()
-    utility_by_wage()
+    m = Model()
+
+    try:
+        v = np.load('npy/v.npy')
+        h = np.load('npy/h.npy')
+        accept_or_reject = np.load('npy/accept_or_reject.npy')
+        a_opt_unemployed = np.load('npy/a_opt_unemployed.npy')
+        a_opt_employed = np.load('npy/a_opt_employed.npy')
+    except IOError:
+        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        np.save('npy/v.npy', v)
+        np.save('npy/h.npy', h)
+        np.save('npy/accept_or_reject.npy', accept_or_reject)
+        np.save('npy/a_opt_unemployed.npy', a_opt_unemployed)
+        np.save('npy/a_opt_employed.npy', a_opt_employed)
+
+    utility_by_assets(m, v, h, a_opt_employed)
+    utility_by_wage(m, v, h, accept_or_reject)
 
 
 if __name__ == '__main__':

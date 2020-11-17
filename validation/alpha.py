@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from validation.steady_state import get_steady_state
+from steady_state import get_steady_state
 
 
 """
@@ -28,7 +28,15 @@ def steady_state_by_alpha():
     steady_states = np.empty((len(w_choice_indices), len(alpha_choices)))
     for alpha_index, alpha in enumerate(alpha_choices):
         m = Model(α=alpha)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_employed = np.load('npy/a_opt_employed_at_{alpha}_alpha.npy'.format(alpha=alpha))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{alpha}_alpha.npy'.format(alpha=alpha), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{alpha}_alpha.npy'.format(alpha=alpha), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{alpha}_alpha.npy'.format(alpha=alpha), accept_or_reject)
+            np.save('npy/h_at_{alpha}_alpha.npy'.format(alpha=alpha), h)
+            np.save('npy/v_at_{alpha}_alpha.npy'.format(alpha=alpha), v)
 
         for w_choice_index, w_grid_index in enumerate(w_choice_indices):
             steady_states[w_choice_index, alpha_index] = get_steady_state(a_opt_employed[:, w_grid_index])
@@ -38,20 +46,24 @@ def steady_state_by_alpha():
         fig, ax = plt.subplots()
         ax.set_xlabel('separations rate α')
         ax.set_ylabel('steady-state assets')
-        ax.plot(alpha_choices, steady_states[w_choice_index, :], '-', alpha=0.4, color="C1", label="steady state assets")
-        plt.savefig(DIR + 'steady_state_by_alpha_at_{w}_wage.png'.format(w=w))
+        ax.plot(alpha_choices, steady_states[w_choice_index, :], '-', alpha=0.4, color="C7", label="steady state assets")
+        plt.savefig(DIR + 'steady_state_by_alpha_at_{w}_wage.png'.format(w=round(w)))
         plt.close()
 
 
 def savings_by_alpha():
     """ i don't trust steady-states because there are too many of them. """
-    w_choice_indices = np.arange(0, 10, 2)
-    alpha_choices = np.linspace(0.05, 0.95, 18)
+    w_choice_indices = np.array([0, 5, 10])
+    alpha_choices = np.array([0.05, 0.95])
     m = Model()
     savings = np.empty((len(w_choice_indices), len(alpha_choices), m.a_size))
     for alpha_index, alpha in enumerate(alpha_choices):
         m = Model(α=alpha)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_employed = np.load('npy/a_opt_employed_at_{alpha}_alpha.npy'.format(alpha=alpha))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{alpha}_alpha.npy'.format(alpha=alpha), a_opt_employed)
 
         for w_choice_index, w_grid_index in enumerate(w_choice_indices):
             savings[w_choice_index, alpha_index, :] = a_opt_employed[:, w_grid_index]
@@ -63,18 +75,22 @@ def savings_by_alpha():
             ax.set_xlabel('current period assets')
             ax.set_ylabel('next period assets')
             ax.plot(m.a_grid, savings[w_choice_index, alpha_index], '-', alpha=0.4, color="C1", label="next period assets")
-            plt.savefig(DIR + 'savings_at_{w}_wage_and_{alpha}_alpha.png'.format(w=w, alpha=alpha))
+            plt.savefig(DIR + 'savings_at_{w}_wage_and_{alpha}_alpha.png'.format(w=round(w), alpha=alpha))
             plt.close()
 
 
 def unsaving_by_alpha():
-    w_choice_indices = np.arange(0, 10, 2)
-    alpha_choices = np.linspace(0.05, 0.95, 18)
+    w_choice_indices = np.array([0, 5, 10])
+    alpha_choices = np.array([0.05, 0.95])
     m = Model()
     savings = np.empty((len(w_choice_indices), len(alpha_choices), m.a_size))
     for alpha_index, alpha in enumerate(alpha_choices):
         m = Model(α=alpha)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_unemployed = np.load('npy/a_opt_unemployed_at_{alpha}_alpha.npy'.format(alpha=alpha))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_unemployed_at_{alpha}_alpha.npy'.format(alpha=alpha), a_opt_unemployed)
 
         for w_choice_index, w_grid_index in enumerate(w_choice_indices):
             savings[w_choice_index, alpha_index, :] = a_opt_unemployed[:, w_grid_index]
@@ -86,7 +102,7 @@ def unsaving_by_alpha():
             ax.set_xlabel('current period assets')
             ax.set_ylabel('next period assets')
             ax.plot(m.a_grid, savings[w_choice_index, alpha_index], '-', alpha=0.4, color="C1", label="next period assets")
-            plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{alpha}_alpha.png'.format(w=w, alpha=alpha))
+            plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{alpha}_alpha.png'.format(w=round(w), alpha=alpha))
             plt.close()
 
 
@@ -97,7 +113,12 @@ def reservation_wage_by_alpha():
 
     for alpha_index, alpha in enumerate(alpha_choices):
         m = Model(α=alpha)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            accept_or_reject = np.load('npy/accept_or_reject_at_{alpha}_alpha.npy'.format(alpha=alpha))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/accept_or_reject_at_{alpha}_alpha.npy'.format(alpha=alpha), accept_or_reject)
+
         for a_choice_index, a_grid_index in enumerate(a_choice_indices):
             reservation_wages[a_choice_index, alpha_index] = np.argwhere(accept_or_reject[a_grid_index, :]  == 1)[0][0]
 
@@ -105,9 +126,9 @@ def reservation_wage_by_alpha():
         a = m.a_grid[a_grid_index]
         fig, ax = plt.subplots()
         ax.set_xlabel('separations rate α')
-        ax.set_ylabel('reservation wage with {a} assets'.format(a=a))
-        ax.plot(alpha_choices, reservation_wages[a_choice_index, :], '-', alpha=0.4, color="C1", label=f"")
-        plt.savefig(DIR + 'reservation_wage_per_alpha_with_{a}_assets.png'.format(a=a))
+        ax.set_ylabel('reservation wage with {a} assets'.format(a=round(a)))
+        ax.plot(alpha_choices, reservation_wages[a_choice_index, :], '-', alpha=0.4, color="C3", label=f"")
+        plt.savefig(DIR + 'reservation_wage_per_alpha_with_{a}_assets.png'.format(a=round(a)))
         plt.close()
 
 
@@ -119,7 +140,12 @@ def h_by_alpha():
 
     for alpha_index, alpha in enumerate(alpha_choices):
         m = Model(α=alpha)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            h = np.load('npy/h_at_{alpha}_alpha.npy'.format(alpha=alpha))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/h_at_{alpha}_alpha.npy'.format(alpha=alpha), h)
+
         for a_choice_index, a_grid_index in enumerate(a_choice_indices):
             for w_choice_index, w_grid_index in enumerate(w_choice_indices):
                 h_results[a_choice_index, w_choice_index, alpha_index] = h[a_grid_index, w_grid_index]
@@ -130,9 +156,9 @@ def h_by_alpha():
             w = m.w_grid[w_grid_index]
             fig, ax = plt.subplots()
             ax.set_xlabel('separations rate α')
-            ax.set_ylabel('h (utility in unemployment) with {a} assets and {w} wage'.format(a=a, w=w))
-            ax.plot(alpha_choices, h_results[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C1", label=f"")
-            plt.savefig(DIR + 'h_per_alpha_with_{a}_assets_and_{w}_wage.png'.format(a=a, w=w))
+            ax.set_ylabel('h (utility in unemployment) with {a} assets and {w} wage'.format(a=round(a), w=round(w)))
+            ax.plot(alpha_choices, h_results[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C5", label=f"")
+            plt.savefig(DIR + 'h_per_alpha_with_{a}_assets_and_{w}_wage.png'.format(a=round(a), w=round(w)))
             plt.close()
 
 
@@ -144,7 +170,12 @@ def v_by_alpha():
 
     for alpha_index, alpha in enumerate(alpha_choices):
         m = Model(α=alpha)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            v = np.load('npy/v_at_{alpha}_alpha.npy'.format(alpha=alpha))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/v_at_{alpha}_alpha.npy'.format(alpha=alpha), v)
+
         for a_choice_index, a_grid_index in enumerate(a_choice_indices):
             for w_choice_index, w_grid_index in enumerate(w_choice_indices):
                 v_results[a_choice_index, w_choice_index, alpha_index] = v[a_grid_index, w_grid_index]
@@ -155,9 +186,9 @@ def v_by_alpha():
             w = m.w_grid[w_grid_index]
             fig, ax = plt.subplots()
             ax.set_xlabel('separations rate α')
-            ax.set_ylabel('v (utility in employment) with {a} assets and {w} wage'.format(a=a, w=w))
-            ax.plot(alpha_choices, v_results[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C1", label=f"")
-            plt.savefig(DIR + 'v_per_alpha_with_{a}_assets_and_{w}_wage.png'.format(a=a, w=w))
+            ax.set_ylabel('v (utility in employment) with {a} assets and {w} wage'.format(a=round(a), w=round(w)))
+            ax.plot(alpha_choices, v_results[a_choice_index, w_choice_index, :], '-', alpha=0.4, color="C6", label=f"")
+            plt.savefig(DIR + 'v_per_alpha_with_{a}_assets_and_{w}_wage.png'.format(a=round(a), w=round(w)))
             plt.close()
 
 
