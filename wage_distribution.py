@@ -6,15 +6,14 @@ from numba import njit
 
 N_points = 4000
 
-μ=0.8
-σ=0.7
+μ=-0.03
+σ=1.2
 
 @njit
 def lognormal_draws(n=100, μ=0.2, σ=1.2, seed=1234):
     np.random.seed(seed)
     z = np.random.randn(n)
-
-    w_draws = np.exp(μ + σ * z) * 2
+    w_draws = np.exp(μ + σ * z)
     return w_draws
 
 
