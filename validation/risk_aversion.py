@@ -4,6 +4,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from model_with_risk import Model
 import numpy as np
 import matplotlib.pyplot as plt
+from agent import find_nearest_index
 
 
 """
@@ -27,9 +28,12 @@ DIR = '/home/shay/projects/quantecon/results/risk_aversion/'
 
 def consumption():
     # consumption should decrease when risk aversion increases
+    m = Model()
     rho_choices = np.linspace(0.5, 3, 6)
-    a_choice_indices = np.array([0, 10, 30])
-    w_choice_indices = np.array([0, 10, 25])
+    w_choices = [0, 20]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    a_choices = [0, 10, 30]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
 
     consumption = np.empty((len(a_choice_indices), len(w_choice_indices), len(rho_choices)))
     for rho_index, rho in enumerate(rho_choices):
@@ -63,9 +67,12 @@ def consumption():
 
 def savings():
     # savings should increase when risk aversion increases
+    m = Model()
     rho_choices = np.linspace(0.5, 3, 6)
-    a_choice_indices = np.array([0, 10, 30])
-    w_choice_indices = np.array([0, 10, 25])
+    w_choices = [0, 20]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    a_choices = [0, 10, 30]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
 
     savings = np.empty((len(a_choice_indices), len(w_choice_indices), len(rho_choices)))
     for rho_index, rho in enumerate(rho_choices):
@@ -94,8 +101,10 @@ def savings():
 
 def reservation_wage():
     # as risk aversion increases, reservation wage decreases
+    m = Model()
     rho_choices = np.linspace(0.5, 3, 6)
-    a_choice_indices = np.array([0, 10, 30])
+    a_choices = [0, 10]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
 
     reservation_wages = np.empty((len(a_choice_indices), len(rho_choices)))
     for rho_index, rho in enumerate(rho_choices):
@@ -122,9 +131,11 @@ def reservation_wage():
 def reservation_wage_and_ism():
     # ism should interact with ARA. if ism is higher (interest is higher), we'll take more risks in order to increase savings.
     # so the reservation wage should increase with ism, and higher ARA should make the effect smaller.
+    m = Model()
     ism_choices = np.linspace(0.5, 1.5, 5)
     rho_choices = np.linspace(0.5, 3, 6)
-    a_choice_indices = np.array([0, 10, 30])
+    a_choices = [10]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
 
     reservation_wages = np.empty((len(a_choice_indices), len(rho_choices), len(ism_choices)))
     for ism_index, ism in enumerate(ism_choices):
@@ -146,7 +157,7 @@ def reservation_wage_and_ism():
             ax.set_xlabel('inter-temporal savings motive')
             ax.set_ylabel('reservation wage with {rho} rho and {a} assets'.format(rho=rho, a=round(a)))
             ax.plot(ism_choices, reservation_wages[a_choice_index, rho_index, :], '-', alpha=0.4, color="C3", label=f"")
-            plt.savefig(DIR + 'reservation_wage_per_ism_with_{rho}_rho_and_{a}_assets.png'.format(rho=rho, a=round(a)))
+            plt.savefig(DIR + 'reservation_wage_per_ism_with_{rho}_rho_and_{a}_assets.png'.format(rho=str(rho).replace('.', '_'), a=round(a)))
             plt.close()
 
 
@@ -181,7 +192,7 @@ def separations_rate():
                 ax.set_xlabel('separation rate α')
                 ax.set_ylabel('next period assets for agent with {rho} risk aversion {a} assets and {w} wage'.format(rho=rho, a=round(a), w=round(w)))
                 ax.plot(alpha_choices, savings[a_choice_index, w_choice_index, :, rho_index], '-', alpha=0.4, color="C8", label=f"")
-                plt.savefig(DIR + 'savings_per_alpha_with_{rho}_rho_and_{w}_wage_and_{a}_assets.png'.format(rho=rho, a=round(a), w=round(w)))
+                plt.savefig(DIR + 'savings_per_alpha_with_{rho}_rho_and_{w}_wage_and_{a}_assets.png'.format(rho=str(rho).replace('.', '_'), a=round(a), w=round(w)))
                 plt.close()
 
 
@@ -193,7 +204,6 @@ def main():
     savings()
     reservation_wage()
     reservation_wage_and_ism()
-    wage_variation()
     separations_rate()
 
 

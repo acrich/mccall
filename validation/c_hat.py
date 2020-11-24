@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
+from agent import find_nearest_index
 
 
 """
@@ -31,9 +32,12 @@ DIR = '/home/shay/projects/quantecon/results/minimal_consumption/'
 
 
 def savings():
+    m = Model()
     c_hat_choices = np.arange(0, 6)
-    a_choice_indices = np.arange(0, 15, 5)
-    w_choice_indices = np.arange(0, 10, 2)
+    a_choices = [0, 5, 10]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
+    w_choices = [3]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
 
     savings = np.empty((len(a_choice_indices), len(w_choice_indices), len(c_hat_choices)))
     for c_hat_index, c_hat in enumerate(c_hat_choices):
@@ -63,8 +67,10 @@ def savings():
 
 
 def reservation_wage():
+    m = Model()
     c_hat_choices = np.linspace(0.5, 10, 20)
-    a_choice_indices = np.arange(0, 30, 3)
+    a_choices = [0, 21]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
 
     reservation_wages = np.empty((len(a_choice_indices), len(c_hat_choices)))
     for c_hat_index, c_hat in enumerate(c_hat_choices):

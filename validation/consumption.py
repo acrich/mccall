@@ -8,7 +8,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from separations import binomial_draws
 from wage_distribution import lognormal_draws
-from agent import generate_lifetime
+from agent import generate_lifetime, find_nearest_index
 from steady_state import get_steady_state
 
 
@@ -76,7 +76,9 @@ def savings_is_increasing_in_current_assets(m, a_opt_employed):
     for j, w in enumerate(m.w_grid):
         assert(is_monotonically_increasing(a_opt_employed[:, j]))
 
-    w_choice_indices = np.arange(0, 20, 2)
+    m = Model()
+    w_choices = [0, 7, 12]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
     for grid_index in w_choice_indices:
         w = m.w_grid[grid_index]
         fig, ax = plt.subplots()
@@ -85,14 +87,16 @@ def savings_is_increasing_in_current_assets(m, a_opt_employed):
 
         ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label=f"$a$")
         ax.plot(m.a_grid, a_opt_employed[:, grid_index], '-', alpha=0.4, color="C2", label=f"$a'$")
-        ax.legend(loc='upper right')
+        ax.legend(loc='lower right')
         plt.savefig(DIR + 'savings_by_current_assets_at_{w}_wage.png'.format(w=round(w)))
         plt.close()
 
 
 def consumption_by_assets(m, a_opt_employed):
-    w_index_choices = np.arange(0, 20)
-    for grid_index in w_index_choices:
+    m = Model()
+    w_choices = [0, 13]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    for grid_index in w_choice_indices:
         w = m.w_grid[grid_index]
         consumption = []
         for i, a in enumerate(m.a_grid):
@@ -109,7 +113,9 @@ def consumption_by_assets(m, a_opt_employed):
 
 
 def consumption_by_wage(m, a_opt_employed):
-    a_index_choices = np.arange(0, 20)
+    m = Model()
+    a_choices = [0, 13]
+    a_index_choices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
     for grid_index in a_index_choices:
         a = m.a_grid[grid_index]
         consumption = []

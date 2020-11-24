@@ -8,7 +8,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from separations import binomial_draws
 from model import Model
 from wage_distribution import lognormal_draws
-from agent import generate_lifetime
+from agent import generate_lifetime, find_nearest_index
 
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -54,12 +54,12 @@ def assets():
 
 def beta():
     m = Model()
-    num_choices=20
-    a_grid_indices=np.arange(0, m.a_size, 10)
-    choices = np.linspace(0.1, 0.95, num_choices)
-    a_index_choices = np.arange(0, len(m.a_grid), 10)
-    results = np.empty((len(a_grid_indices), num_choices))
-    for choice_index, beta in enumerate(choices):
+    num_beta_choices=20
+    a_choices = [0, 10, 91]
+    a_grid_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
+    beta_choices = np.linspace(0.1, 0.95, num_beta_choices)
+    results = np.empty((len(a_grid_indices), num_beta_choices))
+    for choice_index, beta in enumerate(beta_choices):
         m = Model(β=beta)
         try:
             accept_or_reject = np.load('npy/accept_or_reject_at_{beta}_beta.npy'.format(beta=beta))
@@ -75,19 +75,19 @@ def beta():
         fig, ax = plt.subplots()
         ax.set_xlabel("discount factor β")
         ax.set_ylabel('reservation_wage (with {a} assets)'.format(a=round(a)))
-        ax.plot(choices, results[index_in_indices, :], '-', alpha=0.4, color="C2", label=f"$$")
+        ax.plot(beta_choices, results[index_in_indices, :], '-', alpha=0.4, color="C2", label=f"$$")
         plt.savefig(DIR + 'reservation_wage_by_β_with_{a}_assets.png'.format(a=round(a)))
         plt.close()
 
 
 def benefits():
     m = Model()
-    num_choices=20
-    a_grid_indices=np.arange(0, 30, 3)
-    choices = np.linspace(0, 10, num_choices)
-    a_index_choices = np.arange(0, len(m.a_grid), 10)
-    results = np.empty((len(a_grid_indices), num_choices))
-    for choice_index, z in enumerate(choices):
+    num_z_choices=20
+    a_choices = [0, 3, 12]
+    a_grid_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
+    z_choices = np.linspace(0, 10, num_z_choices)
+    results = np.empty((len(a_grid_indices), num_z_choices))
+    for choice_index, z in enumerate(z_choices):
         m = Model(z=z)
         try:
             accept_or_reject = np.load('npy/accept_or_reject_at_{z}_z.npy'.format(z=z))
@@ -103,7 +103,7 @@ def benefits():
         fig, ax = plt.subplots()
         ax.set_xlabel("z (unemployment benefits)")
         ax.set_ylabel('reservation_wage (with {a} assets)'.format(a=round(a)))
-        ax.plot(choices, results[index_in_indices, :], '-', alpha=0.4, color="C2", label=f"$$")
+        ax.plot(z_choices, results[index_in_indices, :], '-', alpha=0.4, color="C2", label=f"$$")
         plt.savefig(DIR + 'reservation_wage_by_z_with_{a}_assets.png'.format(a=round(a)))
         plt.close()
 

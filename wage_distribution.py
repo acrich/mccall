@@ -1,48 +1,38 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import bernoulli
 from numba import njit
 
 
-N_points = 4000
+NUM_DRAWS = 4000
+NUM_BINS = 200
 
-μ=-0.03
-σ=1.2
+
+# we assume a lognormal distribution of wages with median=50K and mean=80K.
+# this translates to monthly mean and median of 4+1/6 and 6+2/3.
+# I calculate the underlying normal distribution parameters like so:
+# median = exp(μ) => ln(median) = μ
+# mean = exp(μ + σ^2/2) => ln(mean) = μ + σ^2/2 => σ^2 = 2*(ln(mean) - μ)
+# μ = ln(4+1/6) = 1.4271
+# σ = sqrt(2*(ln(6+2/3) - ln(4+1/6))) = 0.9695
+
+μ = 1.4271
+σ = 0.9695
+
 
 @njit
-def lognormal_draws(n=100, μ=0.2, σ=1.2, seed=1234):
-    np.random.seed(seed)
-    z = np.random.randn(n)
-    w_draws = np.exp(μ + σ * z)
-    return w_draws
-
-
-@njit
-def better_draws(n=100, μ=0.2, σ=1.2, seed=1234):
+def lognormal_draws(n=100, μ=μ, σ=σ, seed=1234):
     np.random.seed(seed)
     s = np.random.normal(μ, σ, n)
     return np.exp(s)
 
 
-def bimodal_draws(n=100, μ=1.5, σ=1.4, seed=1234):
-    mu, sigma = 1, 0.7 # mean and standard deviation
-    low_w_draws = np.random.normal(mu, sigma, n)
-    low_w_draws = lognormal_draws(n=n, μ=0.5, σ=0.2, seed=seed)
-    mu, sigma = 50, 1.7 # mean and standard deviation
-    high_w_draws = np.random.normal(mu, sigma, n)
-    α = 0.05
-    draws = bernoulli.rvs(1 - α, size=n)
-    w_draws = (1-draws)*high_w_draws + draws*low_w_draws
-    return w_draws
-
-
 if __name__ == '__main__':
-    w = lognormal_draws(n=N_points, μ=μ, σ=σ)
-    average = np.mean(w)
-    print(np.min(w))
-    print(average)
-    print(np.median(w))
-    print(np.max(w))
+    w = lognormal_draws(n=NUM_DRAWS, μ=μ, σ=σ)
+    print("minimum is {}.".format(np.min(w)))
+    print("maximum is {}.".format(np.max(w)))
+    print("average is {}.".format(np.mean(w)))
+    print("median is {}.".format(np.median(w)))
 
-    count, bins, ignored = plt.hist(w, 200, density=True)
+    count, bins, ignored = plt.hist(w, NUM_BINS, density=True)
+    plt.savefig('results/wage_distribution.png')
     plt.show()

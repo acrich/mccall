@@ -8,7 +8,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from separations import binomial_draws
 from model import Model
 from wage_distribution import lognormal_draws
-from agent import generate_lifetime
+from agent import generate_lifetime, find_nearest_index
 
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -26,10 +26,11 @@ DIR = '/home/shay/projects/quantecon/results/savings_motives/'
 def reservation_wage():
     #ism should interact with ARA. if ism is higher (interest is higher), we'll take more risks in order to increase savings.
     # so the reservation wage should increase with ism, and higher ARA should make the effect smaller.
-    ism_choices = np.linspace(0.5, 1.5, 10)
     m = Model()
+    ism_choices = np.linspace(0.5, 1.5, 10)
     interest_choices = (ism_choices/m.β) - 1
-    a_choice_indices = np.arange(0, 30, 3)
+    a_choices = [0, 18, 24]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
 
     reservation_wages = np.empty((len(a_choice_indices), len(ism_choices)))
     for ism_index, ism in enumerate(ism_choices):
@@ -55,10 +56,12 @@ def reservation_wage():
 
 
 def savings_per_ism():
-    a_choice_indices = np.arange(0, 30, 3)
-    w_choice_indices = np.arange(0, 10)
-    ism_choices = np.linspace(0.5, 1.5, 10)
     m = Model()
+    a_choices = [0, 9, 21]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
+    w_choices = [3]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    ism_choices = np.linspace(0.5, 1.5, 10)
     interest_choices = (ism_choices/m.β) - 1
     savings = np.empty((len(a_choice_indices), len(w_choice_indices), len(ism_choices)))
     for ism_index, ism in enumerate(ism_choices):
@@ -87,8 +90,11 @@ def savings_per_ism():
 
 
 def savings_per_alpha():
-    a_choice_indices = np.arange(0, 30, 3)
-    w_choice_indices = np.arange(0, 10)
+    m = Model()
+    a_choices = [0, 9, 21, 24, 27]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
+    w_choices = [0, 3, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
     alpha_choices = np.linspace(0.05, 0.95, 18)
     savings = np.empty((len(a_choice_indices), len(w_choice_indices), len(alpha_choices)))
     for alpha_index, alpha in enumerate(alpha_choices):

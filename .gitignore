@@ -4,3 +4,10 @@ __pycache__/
 .idea/
 results/
 npy/
+wage_distribution.png
+tex/*.sty
+tex/*.aux
+tex/*.log
+tex/*.out
+tex/*.pdf
+tex/*.toc

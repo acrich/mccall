@@ -50,12 +50,12 @@ class Model:
 
     def __init__(
             self,
-            z=2,
+            z=0,
             β=0.96,
             T=408,
             α=1/34,
             τ=0.8,
-            μ=0.2,
+            μ=-0.03,
             σ=1.2,
             ism=1,
             c_hat=0,
@@ -101,18 +101,22 @@ class Model:
         self.w_grid = np.linspace(w_min, w_max, self.w_size)
 
         a_min = 1e-10
-        a_max = 100
-        self.a_size = 100
+        a_max = 2000
+        self.a_size = 200
         self.a_grid = np.linspace(a_min, a_max, self.a_size)
+        # see: https://stackoverflow.com/a/62740029/1408861
+        self.a_grid = a_max*((np.linspace(a_min, 1, self.a_size))**2)
 
         # minimal consumption per period
         self.c_hat = c_hat
 
         # interest rate on assets, given a value of the inter-temporal savings motive
-        self.r = (ism/self.β) - 1
+        # eventually, we divide by 12 to get a monthly return on assets.
+        self.r = ((ism/self.β) - 1)/12
 
         # coefficient of relative risk aversion (only used when u() is overriden)
         self.ρ = ρ
+
 
     @staticmethod
     def u(x):

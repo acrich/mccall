@@ -7,7 +7,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from separations import binomial_draws
 from model import Model
 from wage_distribution import lognormal_draws
-from agent import generate_lifetime
+from agent import generate_lifetime, find_nearest_index
 
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -31,9 +31,12 @@ DIR = '/home/shay/projects/quantecon/results/unemployment_benefits/'
 # a_opt_unemployed by assets, given several levels of benefits
 # a_opt_employed by assets, given several levels of benefits (should stay the same)
 def savings():
+    m = Model()
     z_choices = np.linspace(0, 10, 20)
-    a_choice_indices = np.arange(0, 15, 5)
-    w_choice_indices = np.arange(0, 10, 2)
+    a_choices = [0, 5]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
+    w_choices = [0, 1, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
     savings_employed = np.empty((len(a_choice_indices), len(w_choice_indices), len(z_choices)))
     savings_unemployed = np.empty((len(a_choice_indices), len(w_choice_indices), len(z_choices)))
     for z_choice_index, z in enumerate(z_choices):
@@ -88,7 +91,7 @@ def benefits():
         assets = []
         T = 100
         for i in range(1000):
-            a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=T, a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+            a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
             wages.append(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
             assets.append(a[T-1])
         wages_per_z.append(np.mean(np.asarray(wages)))

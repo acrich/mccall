@@ -1,0 +1,971 @@
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Problem Set/Assignment Template to be used by the
+%% Food and Resource Economics Department - IFAS
+%% University of Florida's graduates.
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Version 1.0 - November 2019
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Ariel Soto-Caro
+%%  - asotocaro@ufl.edu
+%%  - arielsotocaro@gmail.com
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt]{article}
+\usepackage{design_ASC}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\setlength\parindent{0pt} %% Do not touch this
+
+%% -----------------------------
+%% TITLE
+%% -----------------------------
+\title{McCall with Savings} %% Assignment Title
+\author{Shay Acrich\\ %% Student name
+\textsc{Tel Aviv University}
+}
+
+\date{\today} %% Change "\today" by another date manually
+%% -----------------------------
+%% -----------------------------
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\setlength{\droptitle}{-5em}
+%% %%%%%%%%%%%%%%%%%%%%%%%%%
+\maketitle
+
+% --------------------------
+% Start here
+% --------------------------
+
+\tableofcontents
+
+\newpage
+
+\section{The model}
+
+This is a standard McCall model with separations and savings. Agents maximize utility, which is defined separately for employment and unemployment, as follows:
+
+\begin{equation}
+    u(c) = \frac{c^{1 - \rho} - 1}{1 - \rho}
+\end{equation}
+
+\begin{equation}
+    v(w_e, a) = u(c_e - \overline{c}) + \beta [(1 - \alpha) v(w_e, a') + \alpha \sum_{w'} h(w', a') q(w')], \quad s.t. \quad c_e + a' = w_e + a (1 + r)
+\end{equation}
+
+\begin{equation}
+    h(w,a) = \max_{accept,reject} \{ v(w,a), \; u(c_u - \overline{c}) + \beta \sum_{w'} h(w', a') q(w') \} \quad s.t. \quad c_u + a' = z + a (1 + r)
+\end{equation}
+
+\newpage
+
+% %%%%%%%%%%%%%%%%%%%
+\section{Pre-calibration parameters}
+% %%%%%%%%%%%%%%%%%%%
+
+\subsection{The wage distribution}
+
+I use a log-normal distribution for wages. This is done by drawing from a normal distribution (specified below in the parameters section), taking an exponent, and multiplying by 2 (this last part will be removed after properly calibrating the model).
+
+\begin{Verbatim}[frame = single, fontsize = \footnotesize]
+Summary Stats       Min         Median        Mean      Max
+------------------------------------------------------------------
+                    0.294       4.521         5.712     42.417
+\end{Verbatim}
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.35]{../results/wage_distribution.png}
+\caption{The wage distribution (4000 draws, 200 bins)}
+\label{fig:wage_distribution}
+\end{figure}
+
+\subsection{Exogenous Parameters}
+
+
+\begin{tabular}{ |l l l| }
+ \hline
+ Parameter &  Value & Description \\ [0.5ex]
+ \hline
+ z & 2 & Unemployment benefits \\
+$\beta$ & 0.96 & Discount factor \\
+$\overline{c}$ & 0 & Minimum level of single period consumption \\
+T & 408 & Number of lifetime periods \\
+$\alpha$ & 1/34 & Separation rate \\
+$\mu$ & 0.2 & Mean of the normal distribution for wages \\
+$\sigma$ & 1.2 & Standard error of the normal distribution for wages \\
+$\rho$ & 1 & Coefficient of relative risk aversion \\
+ism & 1 & Inter-temporal savings motive \\
+r & $\frac{ism}{\beta} - 1$ & Interest rate on assets \\ [1ex]
+ \hline
+\end{tabular}
+
+\vspace{5mm}
+The choice of T and $\alpha$ is taken from: https://www.bls.gov/news.release/pdf/nlsoy.pdf.
+
+\subsection{Grids}
+\begin{Verbatim}[frame = single, fontsize = \footnotesize]
+Grid            Min         Max                 Size
+------------------------------------------------------------------
+Wages           1e-10       max(wage_draws)*    50
+Assets          1e-10       100                 100
+\end{Verbatim}
+
+* The max value on the wage grid is calculated by taking the max() of 4000 random draws from the wage distribution.
+
+\vspace{5mm}
+Since wages are drawn from a continuous distribution, I use fitted VFI to match choices on the grid with the wages actually assigned to agents within a simulation.
+
+\newpage
+
+% %%%%%%%%%%%%%%%%%%%
+\section{Validation}
+% %%%%%%%%%%%%%%%%%%%
+
+In this section I verify that the choices made in the model are consistent with my expectations. In particular, I look at how the model responds when I tweak each of the parameter.
+
+\subsection{Consumption and savings}
+
+Figures \ref{fig:savings_by_assets}, \ref{fig:consumption_by_current_assets} and \ref{fig:consumption_by_wage} show both savings and consumption increasing in wages and in assets. Steady-states (Figure \ref{fig:ss_by_wage}) reach the edge of the assets grid very quickly. In Figure \ref{fig:savings_by_assets}, the yellow line is the $y=x$ line at which an agent is at a steady-state.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_and_consumption/savings_by_current_assets_at_0_wage.png} \caption{$w=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_and_consumption/savings_by_current_assets_at_7_wage.png}
+\caption{$w=7$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_and_consumption/savings_by_current_assets_at_12_wage.png}
+\caption{$w=12$}
+\end{subfigure}
+
+\caption{Savings by current assets}
+\label{fig:savings_by_assets}
+\end{figure}
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_and_consumption/consumption_by_current_assets_at_0_wage.png} \caption{$w=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_and_consumption/consumption_by_current_assets_at_13_wage.png}
+\caption{$w=13$}
+\end{subfigure}
+
+\caption{Consumption by current assets}
+\label{fig:consumption_by_current_assets}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_and_consumption/consumption_by_wage_at_0_assets.png} \caption{$a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_and_consumption/consumption_by_wage_at_13_assets.png}
+\caption{$a=13$}
+\end{subfigure}
+
+\caption{Consumption by wage}
+\label{fig:consumption_by_wage}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/savings_and_consumption/steady_state_by_wage.png}
+\caption{Steady-state level by wage}
+\label{fig:ss_by_wage}
+\end{figure}
+
+
+\clearpage
+
+\subsection{Savings in unemployment}
+
+The steady-state level of savings should increase in wage. However, there may be several steady-states. To clarify this, Figure \ref{fig:steady_states} presents all the steady states (vertical blue lines) on top of a graph plotting next period savings level by current period savings, for an agent with a very low wage. The yellow line is again the y=x line. Then, Figure \ref{fig:steady_state_by_wage_employed_or_not} presents the steady-state asset levels by wage, using the first (i.e. lowest) steady-state for every wage level.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/employed_vs_unemployed/steady_states_at_0_wage.png}
+\caption{Optimal savings path at w=0}
+\label{fig:steady_states}
+\end{figure}
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/employed_vs_unemployed/steady_state_by_wage_employed_or_not.png}
+\caption{Steady-state per wage, employed vs. unemployed}
+\label{fig:steady_state_by_wage_employed_or_not}
+\end{figure}
+
+\vspace{5mm}
+Figure \ref{fig:savings_by_wage} presents the savings level by wage for agents with low and high levels of current-period savings. It's appears as though the difference is that employed agents save more under very low wages when they have higher current-period savings. Unemployed agents do not display this type of behavior, as expected. For high wage levels, unemployed agents accept the job offers, so both agents behave the same.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/employed_vs_unemployed/savings_by_wage_at_4_assets_employed_vs_unemployed.png}
+\caption{$a=4$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/employed_vs_unemployed/savings_by_wage_at_16_assets_employed_vs_unemployed.png}
+\caption{$a=16$}
+\end{subfigure}
+
+\caption{Savings by wage at different current-period asset levels}
+\label{fig:savings_by_wage}
+\end{figure}
+
+\vspace{5mm}
+Figure \ref{fig:savings_by_current_assets} presents savings level for employed and unemployed agents, per current-period savings. As wage levels go higher, we see that the steady-state for both types of agents increases as well. Again, for the highest wage level, we see that both types of agents behave similarly throughout the grid, since at high wages, unemployed agents would choose to accept job offers.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/employed_vs_unemployed/savings_by_current_assets_at_0_wage_employed_vs_unemployed.png} \caption{$w=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/employed_vs_unemployed/savings_by_current_assets_at_7_wage_employed_vs_unemployed.png}
+\caption{$w=7$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/employed_vs_unemployed/savings_by_current_assets_at_20_wage_employed_vs_unemployed.png}
+\caption{$w=20$}
+\end{subfigure}
+
+\caption{Savings by current assets at different wages}
+\label{fig:savings_by_current_assets}
+\end{figure}
+
+\clearpage
+
+\subsection{Utility}
+
+Utility should increase in both wages and assets, as is visible in both figures below.
+
+\vspace{5mm}
+In Figure \ref{fig:utility_by_assets}, the blue vertical lines are the steady-states for the given wage levels. Steady states move to the right as wages increase, as expected. Utility from unemployment is higher when wages are low, which is also expected. At higher wages, utility from employment and unemployment is the same, because unemployed agents accept the job offers. Even with a high offered wage, at the very high asset levels, unemployed agents may choose to reject the offer, so we see that their utility is higher at those points.
+
+\vspace{5mm}
+In Figure \ref{fig:utility_by_wage}, we see that utility from unemployment is constant, and higher than that of employment, up to a point of convergence. This point should be the reservation wage, above which both types of agents behave similarly, but the reservation wage, plotted as a blue vertical line, is clearly to the right of that point, which I can't explain.
+
+\vspace{5mm}
+The problem I currently face is that utility from unemployment is higher in any case. The idea of the model is to show that rich agents can afford taking on more risk, but if unemployment is good, then there's no risk to account for.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/utility/utility_by_assets_at_3_wage.png} \caption{$w=3$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/utility/utility_by_assets_at_5_wage.png}
+\caption{$w=8$}
+\end{subfigure}
+
+\caption{Utility by assets}
+\label{fig:utility_by_assets}
+\end{figure}
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/utility/utility_by_wage_at_0_assets.png} \caption{$a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/utility/utility_by_wage_at_10_assets.png}
+\caption{$a=10$}
+\end{subfigure}
+
+\caption{Utility by wage}
+\label{fig:utility_by_wage}
+\end{figure}
+
+
+\clearpage
+
+
+\subsection{Lifetime}
+
+Here I look at a single lifetime of an agent that starts employed with very low savings. Figure \ref{fig:lifetime_change_in_assets_by_employment} indicates that the response to employment and unemployment is in the right direction - the agent increases savings when employed, and vice versa. The response, however, is very steep, which suggests that it's too easy to accumulate assets.
+
+\vspace{5mm}
+In Figure \ref{fig:lifetime_assets_and_wage}, we see that the agent can almost instantaneously reach the edge of the assets grid when wages go up, even by a little. This means there's no benefit from initially high assets, which is not what I intended.
+
+\vspace{5mm}
+Figure \ref{fig:lifetime_consumption_and_wage} shows that consumption moves together with wage. Consumption may be higher than wage because of interest on assets.
+
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/lifetime/change_in_assets_and_employment_status.png}
+\caption{Change in level of savings and employment status}
+\label{fig:lifetime_change_in_assets_by_employment}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/lifetime/assets_and_realized_wage.png}
+\caption{Savings and wages}
+\label{fig:lifetime_assets_and_wage}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/lifetime/consumption_and_wage.png}
+\caption{Consumption and wages}
+\label{fig:lifetime_consumption_and_wage}
+\end{figure}
+
+
+\clearpage
+
+
+\subsection{Reservation Wage}
+
+Figure \ref{fig:reservation_wage_by_assets} shows reservation wage increasing with assets, as expected. Figure \ref{fig:reservation_wage_by_z} shows reservation wages by unemployment benefits. Figure \ref{fig:reservation_wage_by_beta} shows reservation wages by the discount factor $\beta$. The reservation wage increases in $\beta$, as it should, and the effect is stronger for agents with higher levels of assets.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/reservation_wage/reservation_wage_by_assets.png}
+\caption{Reservation wage by assets}
+\label{fig:reservation_wage_by_assets}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/reservation_wage/reservation_wage_by_z_with_0_assets.png} \caption{$a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/reservation_wage/reservation_wage_by_z_with_3_assets.png}
+\caption{$a=3$}
+\end{subfigure}%
+\begin{subfigure}{0.3\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/reservation_wage/reservation_wage_by_z_with_11_assets.png}
+\caption{$a=12$}
+\end{subfigure}
+
+\caption{Reservation wage by unemployment benefits}
+\label{fig:reservation_wage_by_z}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/reservation_wage/reservation_wage_by_β_with_0_assets.png} \caption{$a=0e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/reservation_wage/reservation_wage_by_β_with_10_assets.png}
+\caption{$a=10$}
+\end{subfigure}%
+\begin{subfigure}{0.3\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/reservation_wage/reservation_wage_by_β_with_89_assets.png}
+\caption{$a=91$}
+\end{subfigure}
+
+\caption{Reservation wage by $\beta$}
+\label{fig:reservation_wage_by_beta}
+\end{figure}
+
+
+\clearpage
+
+\subsection{Unemployment Benefits}
+
+Figures \ref{fig:assets_at_T_by_benefits}, \ref{fig:reservation_wage_by_benefits_no_assets} and \ref{fig:wage_by_benefits} are averages from 1,000 iterations over an agent's lifetime. Figure \ref{fig:assets_at_T_by_benefits} indicates that there may be an optimal level of benefits for maximizing savings. Figure \ref{fig:reservation_wage_by_benefits_no_assets} shows that the reservation wage increases with benefits, suggesting that benefits may be an important way to "level the playing field" between agents. The result of this is in Figure \ref{fig:wage_by_benefits}, that shows that actual wages increased with benefits as well.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/unemployment_benefits/assets_at_T_by_benefits.png}
+\caption{Assets at end of life by unemployment benefits}
+\label{fig:assets_at_T_by_benefits}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/unemployment_benefits/reservation_wage_by_benefits_no_assets.png}
+\caption{Reservation wage by unemployment benefits (a=0)}
+\label{fig:reservation_wage_by_benefits_no_assets}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/unemployment_benefits/wage_by_benefits.png}
+\caption{Wage by unemployment benefits}
+\label{fig:wage_by_benefits}
+\end{figure}
+
+\vspace{5mm}
+Figure \ref{fig:savings_per_z} shows savings choices per unemployment benefits. As expected, employed agents save more, but the gap diminishes when benefits are high.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/unemployment_benefits/savings_per_z_with_0_wage_and_5_assets.png} \caption{$w=1e-10, a=5$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/unemployment_benefits/savings_per_z_with_1_wage_and_5_assets.png}
+\caption{$w=1, a=5$}
+\end{subfigure}
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/unemployment_benefits/savings_per_z_with_5_wage_and_0_assets.png} \caption{$w=5, a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/unemployment_benefits/savings_per_z_with_5_wage_and_5_assets.png}
+\caption{$w=5, a=5$}
+\end{subfigure}
+
+\caption{Savings per level of unemployment benefits}
+\label{fig:savings_per_z}
+\end{figure}
+
+
+\clearpage
+
+
+\subsection{Minimum consumption}
+
+Agents in the model optimize $u(c - \overline{c})$, where $\overline{c}$ is an exogenous parameter indicating some minimal level of consumption. This enforces some inflexibility in consumption, that may be needed so that agents would perceive unemployment as a risk.
+
+\vspace{5mm}
+Figure \ref{fig:reservation_wage_by_c_hat} shows that the reservation wage increases in $\overline{c}$, and this relationship is persistent and increasing in assets.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/minimal_consumption/reservation_wage_per_c_hat_with_0_assets.png} \caption{$a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/minimal_consumption/reservation_wage_per_c_hat_with_20_assets.png}
+\caption{$a=21$}
+\end{subfigure}
+
+\caption{Reservation wage per $\overline{c}$}
+\label{fig:reservation_wage_by_c_hat}
+\end{figure}
+
+
+Figure \ref{fig:savings_by_c_hat} shows savings weakly decreasing in $\overline{c}$. This is persistent across wages. Savings at times of unemployment (not shown here) display a similar trend, but are lower across the board.
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/minimal_consumption/savings_per_c_hat_with_3_wage_and_0_assets.png} \caption{$w=3, a=0e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/minimal_consumption/savings_per_c_hat_with_3_wage_and_5_assets.png}
+\caption{$w=3, a=5$}
+\end{subfigure}%
+\begin{subfigure}{0.3\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/minimal_consumption/savings_per_c_hat_with_3_wage_and_10_assets.png}
+\caption{$w=3, a=10$}
+\end{subfigure}
+
+\caption{Savings per $\overline{c}$}
+\label{fig:savings_by_c_hat}
+\end{figure}
+
+
+\clearpage
+
+
+\subsection{Discount factor}
+
+Figure \ref{fig:ss_per_beta} shows steady-state levels of assets increasing in $\beta$.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/steady_state_by_beta_at_4_wage.png}
+\caption{Steady-state per $\beta$ at wage 0}
+\end{subfigure}% see: https://tex.stackexchange.com/a/89185
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/steady_state_by_beta_at_6_wage.png}
+\caption{Steady-state per $\beta$ at wage 6}
+\end{subfigure}
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/steady_state_by_beta_at_10_wage.png}
+\caption{Steady-state per $\beta$ at wage 10}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/steady_state_by_beta_at_14_wage.png}
+\caption{Steady-state per $\beta$ at wage 14}
+\end{subfigure}
+
+\caption{Steady-state levels of assets per $\beta$}
+\label{fig:ss_per_beta}
+\end{figure}
+
+Since there may be long sequences of steady-states, especially at the lower wage levels, I also plot the entire savings path for different levels of beta (Figure \ref{fig:savings_per_beta}).
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/savings_at_0_wage_and_0_8_beta.png}
+\caption{$\beta=0.8, w=1e-10$}
+\end{subfigure}% see: https://tex.stackexchange.com/a/89185
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/savings_at_0_wage_and_0_99_beta.png}
+\caption{$\beta=0.995, w=1e-10$}
+\end{subfigure}
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/savings_at_27_wage_and_0_8_beta.png}
+\caption{$\beta=0.8, w=34$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/savings_at_27_wage_and_0_99_beta.png}
+\caption{$\beta=0.995, w=34$}
+\end{subfigure}
+
+\caption{Optimal savings paths per $\beta$ and wages}
+\label{fig:savings_per_beta}
+\end{figure}
+
+\vspace{5mm}
+A greater appreciation for the future (higher $\beta$) means an agent is more likely to forgo the currently offered wage for the chance of a higher wage in future periods, so the reservation wage ($\overline{w})$ rises with $\beta$. See results in Figure \ref{fig:reservation_wage_per_beta} below. This is insensitive to the level of assets.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/beta/reservation_wage_per_beta_with_10_assets.png}
+\caption{Reservation wage per beta for agent with 10 units of assets}
+\label{fig:reservation_wage_per_beta}
+\end{figure}
+
+\vspace{5mm}
+Inter-temporal utility during employment (marked v in the model) generally responds very steeply and positively to changes in $\beta$ (Figure \ref{fig:v_per_beta}). An exception is the case of an agent without assets and with an extremely low wage. The inter-temporal utility during unemployment (Figure \ref{fig:h_per_beta}) seems insensitive to changes in asset levels and wages, since the utility from all future periods only relies on the mean expected wage, and not the currently offered one.
+
+\vspace{5mm}
+One issue that does arise here is that the inter-temporal utility in times of unemployment is not at all sensitive to asset levels, which is not what we'd expect and not what we need for the model to work.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/v_per_beta_with_0_assets_and_0_wage.png}
+\caption{$a=1e-10, w=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/v_per_beta_with_0_assets_and_10_wage.png}
+\caption{$a=1e-10, w=10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/v_per_beta_with_52_assets_and_0_wage.png}
+\caption{$\beta=50, w=1e-10$}
+\end{subfigure}
+
+\caption{Inter-temporal utility during employment per $\beta$}
+\label{fig:v_per_beta}
+\end{figure}
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/h_per_beta_with_0_assets_and_0_wage.png}
+\caption{$a=1e-10, w=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/h_per_beta_with_0_assets_and_10_wage.png}
+\caption{$a=1e-10, w=10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/beta/h_per_beta_with_52_assets_and_0_wage.png}
+\caption{$\beta=50, w=1e-10$}
+\end{subfigure}
+
+\caption{Inter-temporal utility during unemployment per $\beta$}
+\label{fig:h_per_beta}
+\end{figure}
+
+
+\clearpage
+
+
+\subsection{Separations Rate}
+
+Figure \ref{fig:steady_state_by_alpha} shows steady-state levels of savings by $\alpha$ (the lowest steady-state for every $\alpha$ and wage). For low wages, the steady-state is constant for all $\alpha \in (0.05, 0.95)$. For higher wages, the steady-state is increasing, which suggests precautionary savings is taking place.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/alpha/steady_state_by_alpha_at_4_wage.png} \caption{$w=4$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/alpha/steady_state_by_alpha_at_5_wage.png}
+\caption{$w=5$}
+\end{subfigure}
+
+\caption{Steady states per $\alpha$}
+\label{fig:steady_state_by_alpha}
+\end{figure}
+
+
+The picture is a little more complicated when looking at savings per $\alpha$ for different levels of wages and current assets (Figure \ref{fig:savings_per_alpha}). Savings appear to be highest when $\alpha$ is either very low or very high.
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_0_wage_and_0_assets.png} \caption{$w=1e-10, a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_0_wage_and_9_assets.png}
+\caption{$w=1e-10, a=9$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_0_wage_and_24_assets.png}
+\caption{$w=1e-10, a=24$}
+\end{subfigure}
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_3_wage_and_20_assets.png} \caption{$w=3, a=21$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_3_wage_and_24_assets.png}
+\caption{$w=3, a=24$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_3_wage_and_27_assets.png}
+\caption{$w=3, a=27$}
+\end{subfigure}
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_5_wage_and_0_assets.png} \caption{$w=5, a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_5_wage_and_9_assets.png}
+\caption{$w=5, a=9$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_alpha_with_5_wage_and_27_assets.png}
+\caption{$w=5, a=27$}
+\end{subfigure}
+
+\caption{Savings per $\alpha$}
+\label{fig:savings_per_alpha}
+\end{figure}
+
+
+\vspace{5mm}
+Figure \ref{fig:reservation_wage_by_alpha} shows reservation wages decreasing as $\alpha$ increases, which can be explained by lower advantage from future employment with a high wage.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/alpha/reservation_wage_per_alpha_with_0_assets.png} \caption{$a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/alpha/reservation_wage_per_alpha_with_10_assets.png}
+\caption{$a=10$}
+\end{subfigure}
+
+\caption{Reservation wage per $\alpha$}
+\label{fig:reservation_wage_by_alpha}
+\end{figure}
+
+\vspace{5mm}
+Inter-temporal utility is generally decreasing in $\alpha$, except for utility in employment when the wages are very low, which all makes perfect sense. Figure \ref{fig:v_per_alpha} presents the curve for different wage levels. Utility from unemployment (Figure \ref{fig:h_per_alpha}) decreases with $\alpha$ and is not sensitive to changes in wage or current assets.
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/alpha/v_per_alpha_with_5_assets_and_0_wage.png} \caption{$w=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/alpha/v_per_alpha_with_5_assets_and_1_wage.png}
+\caption{$w=1$}
+\end{subfigure}
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/alpha/v_per_alpha_with_5_assets_and_3_wage.png} \caption{$w=3$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/alpha/v_per_alpha_with_5_assets_and_5_wage.png}
+\caption{$w=5$}
+\end{subfigure}
+
+\caption{Inter-temporal utility from employment per $\alpha$}
+\label{fig:v_per_alpha}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/alpha/h_per_alpha_with_5_assets_and_5_wage.png}
+\caption{Inter-temporal utility from unemployment per $\alpha$}
+\label{fig:h_per_alpha}
+\end{figure}
+
+
+\clearpage
+
+\subsection{Interest rate on assets}
+
+Figure \ref{fig:unemployment_spells_by_interest} shows the average number of unemployment periods throughout the lifetime of 1,000 agents, by interest rates. I run the simulation 1,000 times, and each iteration has 408 periods of a single agent. In each iteration I sum the number of periods at which the agent is unemployed, and take an average over all 1,000 iterations. Unemployment seems to be generally trending upwards with interest rates, which can be explained by higher returns on existing assets that allow agents to stretch unemployment for longer periods.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/interest/unemployment_spells_by_interest.png}
+\caption{Average Unemployment spells by interest rates}
+\label{fig:unemployment_spells_by_interest}
+\end{figure}
+
+\vspace{5mm}
+Figure \ref{fig:steady_state_by_interest} shows steady-state levels of savings by interest rates, for different wage realizations. Except for the case of zero wage, the results are insensitive to the actual wage level. Figure \ref{fig:savings_by_interest} shows the savings by interest rates for different wages, with results that seem reasonable.
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/steady_state_by_interest_at_0_wage.png} \caption{$w=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/steady_state_by_interest_at_4_wage.png}
+\caption{$w=4$}
+\end{subfigure}
+
+\caption{Steady-state level of assets by interest rate}
+\label{fig:steady_state_by_interest}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/savings_at_0_wage_and_04_interest.png} \caption{$w=1e-10, r=0.04$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/savings_at_5_wage_and_04_interest.png}
+\caption{$w=5, r=0.04$}
+\end{subfigure}
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/savings_at_0_wage_and_48_interest.png} \caption{$w=1e-10, r=-0.48$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/savings_at_5_wage_and_48_interest.png}
+\caption{$w=5, r=-0.48$}
+\end{subfigure}
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/savings_at_0_wage_and_56_interest.png} \caption{$w=1e-10, r=0.56$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/savings_at_5_wage_and_56_interest.png}
+\caption{$w=5, r=0.56$}
+\end{subfigure}
+
+\caption{Savings path for different interest rates}
+\label{fig:savings_by_interest}
+\end{figure}
+
+
+To bring the point home, figure \ref{fig:savings_per_ism} shows next-period savings level per interest rate, given some wage and current-period assets. The relationship is increasing, and this is persistent among all the combinations of wages and assets that I tested for.
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_ism_with_3_wage_and_0_assets.png} \caption{$w=3, a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_ism_with_3_wage_and_9_assets.png}
+\caption{$w=3, a=9$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/savings_per_ism_with_3_wage_and_20_assets.png}
+\caption{$w=3, a=21$}
+\end{subfigure}
+
+\caption{Savings by interest rate}
+\label{fig:savings_per_ism}
+\end{figure}
+
+
+\vspace{5mm}
+Figure \ref{fig:reservation_wage_by_interest} shows that reservation wages decrease with interest rates for low asset levels and act non-monotonically otherwise.
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/reservation_wage_per_ism_with_0_assets.png} \caption{$w=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/reservation_wage_per_ism_with_18_assets.png}
+\caption{$a=18$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/savings_motives/reservation_wage_per_ism_with_24_assets.png}
+\caption{$a=27$}
+\end{subfigure}
+
+\caption{Reservation wage by interest rate}
+\label{fig:reservation_wage_by_interest}
+\end{figure}
+
+\vspace{5mm}
+Inter-temporal utility in employment increases with the interest rate (Figure \ref{fig:v_per_interest}). Utility in unemployment does as well, and is insensitive to changes in assets and wages (Figure \ref{fig:h_per_interest}).
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/v_per_interest_with_5_assets_and_0_wage.png} \caption{$w=1e-10, a=5$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/interest/v_per_interest_with_5_assets_and_1_wage.png}
+\caption{$w=1, a=5$}
+\end{subfigure}
+
+\caption{Inter-temporal utility from employment per interest rate}
+\label{fig:v_per_interest}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/interest/h_per_interest_with_5_assets_and_5_wage.png}
+\caption{Inter-temporal utility from unemployment per interest rate}
+\label{fig:h_per_interest}
+\end{figure}
+
+
+\clearpage
+
+\subsection{Risk aversion}
+
+Savings should increase in $\rho$, and consumption should decrease accordingly. This indicates that precautionary savings is happening. The reservation wage decreases in $\rho$ as expected, for any level of assets. Figure \ref{fig:reservation_wage_per_ism_and_rho} indicates that for higher levels of $\rho$, the agent chooses a lower reservation wage, given various interest rates on assets.
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/consumption_per_rho_with_0_wage_and_0_assets.png} \caption{$w=1e-10, a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/consumption_per_rho_with_0_wage_and_30_assets.png}
+\caption{$w=1e-10, a=30$}
+\end{subfigure}
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/consumption_per_rho_with_20_wage_and_0_assets.png} \caption{$w=20, a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/consumption_per_rho_with_20_wage_and_10_assets.png}
+\caption{$w=20, a=10$}
+\end{subfigure}
+
+\caption{Consumption per $\rho$}
+\label{fig:consumption_per_rho}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/savings_per_rho_with_0_wage_and_0_assets.png} \caption{$w=1e-10, a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/savings_per_rho_with_0_wage_and_30_assets.png}
+\caption{$w=1e-10, a=30$}
+\end{subfigure}
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/savings_per_rho_with_20_wage_and_0_assets.png} \caption{$w=20, a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/savings_per_rho_with_20_wage_and_10_assets.png}
+\caption{$w=20, a=10$}
+\end{subfigure}
+
+\caption{Savings per $\rho$}
+\label{fig:savings_per_rho}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/reservation_wage_per_rho_with_0_assets.png} \caption{$a=1e-10$}
+\end{subfigure}%
+\begin{subfigure}{0.5\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/reservation_wage_per_rho_with_10_assets.png}
+\caption{$a=10$}
+\end{subfigure}
+
+\caption{Reservation wage per $\rho$}
+\label{fig:reservation_wage_per_rho}
+\end{figure}
+
+
+\begin{figure}[hbt!]
+
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/reservation_wage_per_ism_with_0_5_rho_and_10_assets.png} \caption{$\rho=0.5, a=10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/reservation_wage_per_ism_with_1_5_rho_and_10_assets.png}
+\caption{$\rho=1.5, a=10$}
+\end{subfigure}%
+\begin{subfigure}{0.33\textwidth}
+\includegraphics[width=0.9\linewidth, height=5cm]{../results/risk_aversion/reservation_wage_per_ism_with_3_0_rho_and_10_assets.png}
+\caption{$\rho=3, a=10$}
+\end{subfigure}
+
+\caption{Reservation wage per ism (interest) for different levels of $\rho$}
+\label{fig:reservation_wage_per_ism_and_rho}
+\end{figure}
+
+
+
+\clearpage
+
+\subsection{Mean wage}
+
+I don't really work with the mean wage. I work with the mean of the normal distribution that's used to generate the log-normal distribution of wages. An increase in $\mu$ increases the realized wages, so unemployment is generally decreasing in $\mu$, as is visible in Figure \ref{fig:unemployment_spells_by_mu}. I tried looking at reservation wages and steady-state levels of assets. However, since changing $\mu$ changes the wage grid, every point on the plot really applies to a different wage distribution, and everything explodes really quickly.
+
+\vspace{5mm}
+Figure \ref{fig:unemployment_spells_by_mu} presents the average from 1,000 iterations of an agent's lifetime, per realization of $\mu$.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/mu/unemployment_spells_by_mu.png}
+\caption{Average Unemployment spells by mean wage}
+\label{fig:unemployment_spells_by_mu}
+\end{figure}
+
+
+\clearpage
+
+
+\subsection{Wage variance}
+
+A mean-preserving spread in wages would make unemployment more attractive, because there's a higher chance of higher wages. Similarly to before, I look at the average number of periods that an agent spends unemployed, per realization of $\sigma$ (for 1,000 iterations of an agent's lifetime, per $\sigma$). The results are presented below in Figure \ref{fig:unemployment_spells_by_sigma}. We see that the trend is generally increasing, but not very smoothly. Running the same function with 2,000 iterations did not produce a meaningful change in the smoothness of the curve.
+
+\begin{figure}[hbt!]
+\centering
+\includegraphics[scale=0.7]{../results/sigma/unemployment_spells_by_sigma.png}
+\caption{Average unemployment spells per $\sigma$}
+\label{fig:unemployment_spells_by_sigma}
+\end{figure}
+
+
+\end{document}

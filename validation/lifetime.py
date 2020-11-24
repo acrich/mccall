@@ -42,7 +42,7 @@ def main():
         np.save('npy/a_opt_unemployed.npy', a_opt_unemployed)
         np.save('npy/a_opt_employed.npy', a_opt_employed)
 
-    a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=m.T, a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+    a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
 
     # a increases when employment_spells is set, and decreases when it's not.
     change_in_assets = np.empty((m.T))

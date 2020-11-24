@@ -2,8 +2,10 @@ import os
 from model import Model
 import numpy as np
 import matplotlib.pyplot as plt
-
+import sys
+sys.path.append('/home/shay/projects/quantecon')
 from steady_state import get_steady_state, get_steady_states
+from agent import find_nearest_index
 
 
 """
@@ -40,7 +42,7 @@ def ss_by_wage(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
 
 
 def steady_states(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
-    w_choice_indices = np.arange(0, 6, 2)
+    w_choice_indices = np.array([0])
     for w_grid_index in w_choice_indices:
         w = m.w_grid[w_grid_index]
         steady_states = get_steady_states(a_opt_employed[:, w_grid_index])
@@ -61,7 +63,9 @@ def steady_states(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
 # next period assets by current period assets for employed/unemployed, at reservation wage
 # next period assets by current period assets for employed/unemployed, above reservation wage
 def savings_by_assets(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
-    w_choice_indices = np.array([0, 10, 30])
+    m = Model()
+    w_choices = [0, 7, 20]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
     for grid_index in w_choice_indices:
         w = m.w_grid[grid_index]
         fig, ax = plt.subplots()
@@ -87,7 +91,9 @@ def savings_by_assets(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
 # a_opt_unemployed by wage, given asset level (mark vertical line for reservation wage)
 # a_opt_employed by wage, given asset level (mark vertical line for reservation wage)
 def savings_by_wage(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
-    a_choice_indices = np.arange(0, 20, 4)
+    m = Model()
+    a_choices = [4, 16]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
     for grid_index in a_choice_indices:
         a = m.a_grid[grid_index]
         fig, ax = plt.subplots()

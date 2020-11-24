@@ -20,11 +20,22 @@ def unemployment_spells_by_sigma():
 
     for sigma_index, sigma in enumerate(sigma_choices):
         m = Model(σ=sigma)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_employed = np.load('npy/a_opt_employed_at_{sigma}_sigma.npy'.format(sigma=sigma))
+            a_opt_unemployed = np.load('npy/a_opt_unemployed_at_{sigma}_sigma.npy'.format(sigma=sigma))
+            accept_or_reject = np.load('npy/accept_or_reject_at_{sigma}_sigma.npy'.format(sigma=sigma))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{sigma}_sigma.npy'.format(sigma=sigma), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{sigma}_sigma.npy'.format(sigma=sigma), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{sigma}_sigma.npy'.format(sigma=sigma), accept_or_reject)
+            np.save('npy/h_at_{sigma}_sigma.npy'.format(sigma=sigma), h)
+            np.save('npy/v_at_{sigma}_sigma.npy'.format(sigma=sigma), v)
+
         unemployment_spell = []
         T = 100
         for i in range(1000):
-            a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=T, a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+            a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
             unemployment_spell.append(T - np.sum(employment_spells))
         unemployment_spells[sigma_index] = np.mean(np.asarray(unemployment_spell))
 
@@ -42,7 +53,17 @@ def steady_state_by_sigma():
     steady_states = np.empty((len(w_choice_indices), len(sigma_choices)))
     for sigma_index, sigma in enumerate(sigma_choices):
         m = Model(σ=sigma)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_employed = np.load('npy/a_opt_employed_at_{sigma}_sigma.npy'.format(sigma=sigma))
+            a_opt_unemployed = np.load('npy/a_opt_unemployed_at_{sigma}_sigma.npy'.format(sigma=sigma))
+            accept_or_reject = np.load('npy/accept_or_reject_at_{sigma}_sigma.npy'.format(sigma=sigma))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{sigma}_sigma.npy'.format(sigma=sigma), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{sigma}_sigma.npy'.format(sigma=sigma), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{sigma}_sigma.npy'.format(sigma=sigma), accept_or_reject)
+            np.save('npy/h_at_{sigma}_sigma.npy'.format(sigma=sigma), h)
+            np.save('npy/v_at_{sigma}_sigma.npy'.format(sigma=sigma), v)
 
         for w_choice_index, w_grid_index in enumerate(w_choice_indices):
             steady_states[w_choice_index, sigma_index] = get_steady_state(a_opt_employed[:, w_grid_index])
@@ -64,7 +85,18 @@ def reservation_wage_by_sigma():
 
     for sigma_index, sigma in enumerate(sigma_choices):
         m = Model(σ=sigma)
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+        try:
+            a_opt_employed = np.load('npy/a_opt_employed_at_{sigma}_sigma.npy'.format(sigma=sigma))
+            a_opt_unemployed = np.load('npy/a_opt_unemployed_at_{sigma}_sigma.npy'.format(sigma=sigma))
+            accept_or_reject = np.load('npy/accept_or_reject_at_{sigma}_sigma.npy'.format(sigma=sigma))
+        except IOError:
+            v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+            np.save('npy/a_opt_employed_at_{sigma}_sigma.npy'.format(sigma=sigma), a_opt_employed)
+            np.save('npy/a_opt_unemployed_at_{sigma}_sigma.npy'.format(sigma=sigma), a_opt_unemployed)
+            np.save('npy/accept_or_reject_at_{sigma}_sigma.npy'.format(sigma=sigma), accept_or_reject)
+            np.save('npy/h_at_{sigma}_sigma.npy'.format(sigma=sigma), h)
+            np.save('npy/v_at_{sigma}_sigma.npy'.format(sigma=sigma), v)
+
         for a_choice_index, a_grid_index in enumerate(a_choice_indices):
             reservation_wages[a_choice_index, sigma_index] = m.w_grid[np.argwhere(accept_or_reject[a_grid_index, :]  == 1)[0][0]]
 

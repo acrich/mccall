@@ -53,7 +53,7 @@ def get_steady_state(vector):
         return None
 
     if len(steady_states) > 1:
-        print(steady_states)
+        pass
 
     # next(iter(set)) returns the first element in the set.
     # by sorting first, we ensure that we get the lowest steady-state.

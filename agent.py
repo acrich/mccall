@@ -28,7 +28,7 @@ def find_nearest_index(array, value):
     return (np.abs(array - value)).argmin()
 
 
-def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=None, a_opt_employed=None):
+def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=None, a_opt_employed=None):
     """
     Given initial asset level a_0, this function returns employment,
     consumption and savings decisions and separations and wage incidences
@@ -37,7 +37,7 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
 
     # T binomial draws that determine for every period t whether a separation occurs
     # we only look at these draws in periods where is_employed=1.
-    is_separated_at = binomial_draws(n=T, α=model.α)
+    is_separated_at = binomial_draws(n=model.T, α=model.α)
 
     # lists periods in which separations occured.
     # a separation would occur in period t if is_employed=1 and is_separated_at[t] = 1.
@@ -55,13 +55,13 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
     # we use {0,1} to be able to sketch these results on a line chart, and also for
     # confortably doing vector multiplication with the wage vector, so as to attain a sum
     # of income in all periods.
-    employment_spells = np.empty(T)
+    employment_spells = np.empty(model.T)
 
     # offered wage at period t (vector of size T).
     # this vector is only used if the agent is currenly unemployed.
     # this is the actual wage and not a grid index, and the wage drawn may not even
     # be on the grid, so we approximate using find_nearest_index wherever necessary.
-    offered_wage_at = lognormal_draws(n=T, μ=model.μ, σ=model.σ)
+    offered_wage_at = lognormal_draws(n=model.T, μ=model.μ, σ=model.σ)
 
     # wage of employed worker, or offered wage for the unemployed.
     # this is a variable and not a vector - it only states the current wage.
@@ -72,7 +72,7 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
     # these are the actual wage levels and not grid indices.
     # realized wages may not always fit on the grid, as their taken from
     # draws on a lognormal distribution.
-    realized_wage = np.empty(T)
+    realized_wage = np.empty(model.T)
 
     # this is the minimal offered wage that will be accepted.
     # it changes with assets. an agent with a high level of assets may choose
@@ -82,7 +82,7 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
     # on the grid, meaning that the real reservation wage, if calculated, may be
     # slightly different than the one represented in this vector, but for all
     # computational purposes this shouldn't make a difference.
-    reservation_wage = np.empty(T)
+    reservation_wage = np.empty(model.T)
 
     # level of assets (savings decision) at period t.
     # this has T+1 values because, although we only draw T periods,
@@ -90,7 +90,7 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
     # the value at t=0 is the initial assets of the agent.
     # these initial assets are the source of wealth heterogeneity in the model.
     # this vector holds the actual asset levels and not their index on the grid.
-    a = np.empty(T + 1)
+    a = np.empty(model.T + 1)
     a[0] = model.a_grid[find_nearest_index(model.a_grid, a_0)]
 
     # a vector of size T, indicating consumption at period t.
@@ -98,15 +98,15 @@ def generate_lifetime(T=100, a_0=1, model={}, accept_or_reject=None, a_opt_unemp
     # by every agent at every period. consumption is everything earned or stored
     # as assets that's not saved as next period assets, so the equation is:
     # consumption - c_hat + next_period_assets = wage_or_unemployment_benefits + current_period_assets * (1 + r)
-    consumption = np.empty(T)
+    consumption = np.empty(model.T)
 
     # vector of size T holding the single period t utility from consumption.
     # this is equivalent to np.log(consumption).
     # consumption may be very small, so the utility may be negative, but consumption
     # should never be negative, so utility should always be defined.
-    u_t = np.empty(T)
+    u_t = np.empty(model.T)
 
-    for t in range(T):
+    for t in range(model.T):
         w_index = find_nearest_index(model.w_grid, w_t)
         a_index = find_nearest_index(model.a_grid, a[t])
 
@@ -162,6 +162,7 @@ def draw(a, u_t, realized_wage, employment_spells, consumption, separations, res
     for t in separations:
         plt.axvline(x=t, color="C7")
     ax.legend(loc='upper right')
+    plt.savefig('results/lifetime_with_{a}_assets.png'.format(a=a[0]))
     plt.show()
 
 
@@ -169,7 +170,7 @@ def run_a_lot(T, m):
     wages = []
     assets = []
     for i in range(1000):
-        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=T, a_0=0, model=m)
+        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m)
         wages.append(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
         assets.append(a[T-1])
     print("average lifetime wage for the poor: {}".format(np.mean(np.asarray(wages))))
@@ -177,23 +178,38 @@ def run_a_lot(T, m):
     wages = []
     assets = []
     for i in range(1000):
-        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=T, a_0=150, model=m)
+        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=150, model=m)
         wages.append(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
         assets.append(a[T-1])
     print("average lifetime wage for the rich: {}".format(np.mean(np.asarray(wages))))
     print("assets at end of life for the rich: {}".format(np.mean(assets)))
 
-def run(T, m):
-    a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=T, a_0=0, model=m)
-    draw(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=T)
+def run(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
+    a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+    draw(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=m.T)
     print(np.sum(employment_spells))
     print(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
-    a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=T, a_0=150, model=m)
+    a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=1000, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
     print(np.sum(employment_spells))
     print(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
-    draw(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=T)
+    draw(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=m.T)
 
 
+def plot_stationary_distributions(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
+    wages = []
+    assets = []
+    for i in range(1000):
+        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+        wages.append(realized_wage[-1])
+        assets.append(a[T-1])
+
+    count, bins, ignored = plt.hist(wages, 200, density=True)
+    plt.savefig('results/stationary_wage_distribution.png')
+    plt.show()
+
+    count, bins, ignored = plt.hist(assets, 200, density=True)
+    plt.savefig('results/stationary_asset_distribution.png')
+    plt.show()
 
 
 # try:
@@ -214,5 +230,4 @@ if __name__ == '__main__':
     m = Model()
     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
-    T = 408
-    run(T, m)
+    run(m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)

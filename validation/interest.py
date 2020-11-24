@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from agent import generate_lifetime
+from agent import generate_lifetime, find_nearest_index
 from steady_state import get_steady_state
 
 
@@ -46,7 +46,7 @@ def unemployment_spells_by_interest():
         unemployment_spell = []
         T = 100
         for i in range(1000):
-            a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=T, a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+            a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
             unemployment_spell.append(T - np.sum(employment_spells))
         unemployment_spells[ism_index] = np.mean(np.asarray(unemployment_spell))
 
@@ -59,9 +59,10 @@ def unemployment_spells_by_interest():
 
 
 def steady_state_by_interest():
-    w_choice_indices = np.arange(0, 25, 6)
-    ism_choices = np.linspace(0.5, 1.5, 10)
     m = Model()
+    w_choices = [0, 4]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    ism_choices = np.linspace(0.5, 1.5, 10)
     interest_choices = (ism_choices/m.β) - 1
     steady_states = np.empty((len(w_choice_indices), len(interest_choices)))
     for ism_index, ism in enumerate(ism_choices):
@@ -95,11 +96,11 @@ def steady_state_by_interest():
 
 def savings_by_interest():
     """ i don't trust steady-states because there are too many of them. """
-    w_choice_indices = np.array([0, 2, 8])
+    m = Model()
+    w_choices = [0, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
     ism_choices = np.linspace(0.5, 1.5, 5)
-    m = Model()
     interest_choices = (ism_choices/m.β) - 1
-    m = Model()
     savings = np.empty((len(w_choice_indices), len(interest_choices), m.a_size))
     for ism_index, ism in enumerate(ism_choices):
         m = Model(ism=ism)
@@ -128,7 +129,7 @@ def savings_by_interest():
             ax.set_ylabel('next period assets')
             ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="next period assets")
             ax.plot(m.a_grid, savings[w_choice_index, interest_index], '-', alpha=0.4, color="C2", label="next period assets")
-            plt.savefig(DIR + 'savings_at_{w}_wage_and_{interest}_interest.png'.format(w=round(w), interest=round(interest, 2)))
+            plt.savefig(DIR + 'savings_at_{w}_wage_and_{interest}_interest.png'.format(w=round(w), interest=str(round(interest, 2)).split('.')[1]))
             plt.close()
 
 
@@ -166,7 +167,7 @@ def unsaving_by_interest():
             ax.set_ylabel('next period assets')
             ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="next period assets")
             ax.plot(m.a_grid, savings[w_choice_index, interest_index], '-', alpha=0.4, color="C2", label="next period assets")
-            plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{interest}_interest.png'.format(w=round(w), interest=round(interest, 2)))
+            plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{interest}_interest.png'.format(w=round(w), interest=str(round(interest, 2)).split('.')[1]))
             plt.close()
 
 
@@ -207,11 +208,13 @@ def reservation_wage_by_interest():
 
 
 def h_by_interest():
-    ism_choices = np.linspace(0.5, 1.5, 10)
     m = Model()
+    ism_choices = np.linspace(0.5, 1.5, 10)
     interest_choices = (ism_choices/m.β) - 1
-    w_choice_indices = np.arange(0, 10, 2)
-    a_choice_indices = np.arange(0, 15, 5)
+    w_choices = [0, 1, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    a_choices = [5]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
     h_results = np.empty((len(a_choice_indices), len(w_choice_indices), len(interest_choices)))
 
     for ism_index, ism in enumerate(ism_choices):
@@ -247,11 +250,13 @@ def h_by_interest():
 
 
 def v_by_interest():
-    ism_choices = np.linspace(0.5, 1.5, 10)
     m = Model()
+    ism_choices = np.linspace(0.5, 1.5, 10)
     interest_choices = (ism_choices/m.β) - 1
-    w_choice_indices = np.arange(0, 10, 2)
-    a_choice_indices = np.arange(0, 15, 5)
+    w_choices = [0, 1, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    a_choices = [5]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
     v_results = np.empty((len(a_choice_indices), len(w_choice_indices), len(interest_choices)))
 
     for ism_index, ism in enumerate(ism_choices):

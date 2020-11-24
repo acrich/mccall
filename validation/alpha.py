@@ -5,6 +5,7 @@ import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from steady_state import get_steady_state
+from agent import find_nearest_index
 
 
 """
@@ -23,7 +24,9 @@ def steady_state_by_alpha():
     generates plots for several wage levels. if there are more than 1 steady
     state, we only plot the first one in the list.
     """
-    w_choice_indices = np.arange(0, 10, 2)
+    m = Model()
+    w_choices = [4, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
     alpha_choices = np.linspace(0.05, 0.95, 18)
     steady_states = np.empty((len(w_choice_indices), len(alpha_choices)))
     for alpha_index, alpha in enumerate(alpha_choices):
@@ -80,9 +83,9 @@ def savings_by_alpha():
 
 
 def unsaving_by_alpha():
+    m = Model()
     w_choice_indices = np.array([0, 5, 10])
     alpha_choices = np.array([0.05, 0.95])
-    m = Model()
     savings = np.empty((len(w_choice_indices), len(alpha_choices), m.a_size))
     for alpha_index, alpha in enumerate(alpha_choices):
         m = Model(α=alpha)
@@ -107,8 +110,10 @@ def unsaving_by_alpha():
 
 
 def reservation_wage_by_alpha():
+    m = Model()
     alpha_choices = np.linspace(0.05, 0.95, 18)
-    a_choice_indices = np.arange(0, 15, 5)
+    a_choices = [0, 10]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
     reservation_wages = np.empty((len(a_choice_indices), len(alpha_choices)))
 
     for alpha_index, alpha in enumerate(alpha_choices):
@@ -133,9 +138,12 @@ def reservation_wage_by_alpha():
 
 
 def h_by_alpha():
+    m = Model()
     alpha_choices = np.linspace(0.05, 0.95, 18)
-    w_choice_indices = np.arange(0, 10, 2)
-    a_choice_indices = np.arange(0, 15, 5)
+    w_choices = [0, 1, 3, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    a_choices = [5]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
     h_results = np.empty((len(a_choice_indices), len(w_choice_indices), len(alpha_choices)))
 
     for alpha_index, alpha in enumerate(alpha_choices):
@@ -163,9 +171,12 @@ def h_by_alpha():
 
 
 def v_by_alpha():
+    m = Model()
     alpha_choices = np.linspace(0.05, 0.95, 18)
-    w_choice_indices = np.arange(0, 10, 2)
-    a_choice_indices = np.arange(0, 15, 5)
+    w_choices = [0, 1, 3, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
+    a_choices = [5]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
     v_results = np.empty((len(a_choice_indices), len(w_choice_indices), len(alpha_choices)))
 
     for alpha_index, alpha in enumerate(alpha_choices):

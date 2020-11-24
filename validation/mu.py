@@ -39,7 +39,7 @@ def unemployment_spells_by_mu():
         unemployment_spell = []
         T = 100
         for i in range(1000):
-            a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(T=T, a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+            a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=1, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
             unemployment_spell.append(T - np.sum(employment_spells))
         unemployment_spells[mu_index] = np.mean(np.asarray(unemployment_spell))
 

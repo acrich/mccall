@@ -5,6 +5,7 @@ import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from steady_state import get_steady_states
+from agent import find_nearest_index
 
 
 """
@@ -18,7 +19,9 @@ DIR = '/home/shay/projects/quantecon/results/utility/'
 
 
 def utility_by_assets(m, v, h, a_opt_employed):
-    w_choice_indices = np.arange(10, 20, 2)
+    m = Model()
+    w_choices = [3, 5]
+    w_choice_indices = np.asarray([find_nearest_index(m.w_grid, w) for w in w_choices])
 
     for w_choice_index, w_grid_index in enumerate(w_choice_indices):
         w = m.w_grid[w_grid_index]
@@ -31,12 +34,14 @@ def utility_by_assets(m, v, h, a_opt_employed):
         for steady_state in steady_states:
             plt.axvline(x=steady_state)
         ax.legend(loc='lower right')
-        plt.savefig(DIR + 'utility_by_assets_at_{w}_wage.png'.format(w=w))
+        plt.savefig(DIR + 'utility_by_assets_at_{w}_wage.png'.format(w=round(w)))
         plt.close()
 
 
 def utility_by_wage(m, v, h, accept_or_reject):
-    a_choice_indices = np.arange(0, 15, 5)
+    m = Model()
+    a_choices = [0, 10]
+    a_choice_indices = np.asarray([find_nearest_index(m.a_grid, a) for a in a_choices])
 
     for a_choice_index, a_grid_index in enumerate(a_choice_indices):
         a = m.a_grid[a_grid_index]
@@ -52,7 +57,7 @@ def utility_by_wage(m, v, h, accept_or_reject):
         except IndexError:
             pass
         ax.legend(loc='lower right')
-        plt.savefig(DIR + 'utility_by_wage_at_{a}_assets.png'.format(a=a))
+        plt.savefig(DIR + 'utility_by_wage_at_{a}_assets.png'.format(a=round(a)))
         plt.close()
 
 
