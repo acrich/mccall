@@ -1,0 +1,13 @@
+This project simulates McCall (1970) with a CES utility function, separations, and savings.
+
+It is based on the basic McCall model, as implemented in quantecon.org.
+
+The McCall model implementation is at model.py.
+
+A good starting point is to run lifetime.py, which generates some graphs and statistics from that model.
+
+Cached results of previous model results are stored under the npy dir, so whenever changing model parameters, be sure to clear that directory.
+
+The gen_validation_doc.py script generates a PDF with lots of nice graphs, at tex/validation.pdf.
+To run it, first install the following (assuming Debian):
+sudo apt-get install texlive-xetex texlive-fonts-recommended texlive-generic-recommended

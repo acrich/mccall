@@ -1,0 +1,13 @@
+interpolation==2.1.6
+ipython==7.18.1
+matplotlib==3.3.2
+nbconvert==6.0.7
+numba==0.51.2
+numpy==1.19.2
+pandas==1.1.2
+python-dateutil==2.8.1
+pytz==2020.1
+quantecon==0.4.8
+requests==2.24.0
+scipy==1.5.2
+sympy==1.6.2
