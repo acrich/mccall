@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from agent import generate_lifetime, find_nearest_index
+from lifetime import generate_lifetime, find_nearest_index
 from steady_state import get_steady_state
 
 
@@ -20,6 +20,7 @@ the effect of ism on savings should increase in the level of assets, and in wage
 
 
 DIR = '/home/shay/projects/quantecon/results/interest/'
+GRID_LIMIT = 50
 
 
 def unemployment_spells_by_interest():
@@ -127,8 +128,8 @@ def savings_by_interest():
             fig, ax = plt.subplots()
             ax.set_xlabel('current period assets')
             ax.set_ylabel('next period assets')
-            ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="next period assets")
-            ax.plot(m.a_grid, savings[w_choice_index, interest_index], '-', alpha=0.4, color="C2", label="next period assets")
+            ax.plot(range(GRID_LIMIT), range(GRID_LIMIT), '-', alpha=0.4, color="C1", label="next period assets")
+            ax.plot(range(GRID_LIMIT), savings[w_choice_index, interest_index, 0:GRID_LIMIT], '-', alpha=0.4, color="C2", label="next period assets")
             plt.savefig(DIR + 'savings_at_{w}_wage_and_{interest}_interest.png'.format(w=round(w), interest=str(round(interest, 2)).split('.')[1]))
             plt.close()
 

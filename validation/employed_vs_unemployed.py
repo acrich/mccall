@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('/home/shay/projects/quantecon')
 from steady_state import get_steady_state, get_steady_states
-from agent import find_nearest_index
+from lifetime import find_nearest_index
 
 
 """
@@ -21,6 +21,7 @@ a_opt_employed shouldn't be directly affected by benefits.
 
 
 DIR = '/home/shay/projects/quantecon/results/employed_vs_unemployed/'
+GRID_LIMIT = 50
 
 
 # ss by wage for employed/unemployed
@@ -51,8 +52,8 @@ def steady_states(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
         ax.set_xlabel('current period assets')
         ax.set_ylabel('next period assets with {w} wage'.format(w=round(w)))
 
-        ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="$a$")
-        ax.plot(m.a_grid, a_opt_employed[:, w_grid_index], '-', alpha=0.4, color="C2", label="$a_e'$")
+        ax.plot(range(GRID_LIMIT), range(GRID_LIMIT), '-', alpha=0.4, color="C1", label="$a$")
+        ax.plot(range(GRID_LIMIT), a_opt_employed[0:GRID_LIMIT, w_grid_index], '-', alpha=0.4, color="C2", label="$a_e'$")
         for steady_state in steady_states:
             plt.axvline(x=steady_state)
         plt.savefig(DIR + 'steady_states_at_{w}_wage.png'.format(w=round(w)))
@@ -75,9 +76,9 @@ def savings_by_assets(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
         for i, a in enumerate(m.a_grid):
             reservation_wage[i] = np.argwhere(accept_or_reject[i, :]  == 1)[0][0]
 
-        ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="$a$")
-        ax.plot(m.a_grid, a_opt_employed[:, grid_index], '-', alpha=0.4, color="C2", label="$a_e'$")
-        ax.plot(m.a_grid, a_opt_unemployed[:, grid_index], '-', alpha=0.4, color="C4", label="$a_u'$")
+        ax.plot(range(GRID_LIMIT), range(GRID_LIMIT), '-', alpha=0.4, color="C1", label="$a$")
+        ax.plot(range(GRID_LIMIT), a_opt_employed[0:GRID_LIMIT, grid_index], '-', alpha=0.4, color="C2", label="$a_e'$")
+        ax.plot(range(GRID_LIMIT), a_opt_unemployed[0:GRID_LIMIT, grid_index], '-', alpha=0.4, color="C4", label="$a_u'$")
         try:
             v = np.where(reservation_wage == grid_index)[0][0]
             plt.axvline(x=v)

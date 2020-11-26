@@ -7,18 +7,7 @@ from model import Model
 from wage_distribution import lognormal_draws
 
 
-"""
-general plan:
-We've taken the basic McCall model, as implemented in quantecon.org, and plan
-to apply the following steps:
-1. add separations (following example in quantecon.org)
-2. add continuous distribution of w (again, following quantecon.org)
-3. add savings. from now on I'm by myself.
-4. add multiple agents with heterogeneity in a_0
-5. add w that's resolved competitively using a technology that includes a stochastic TFP?
-"""
-
-
+# force print to display entire matrices
 np.set_printoptions(threshold=sys.maxsize)
 
 
@@ -32,7 +21,7 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
     """
     Given initial asset level a_0, this function returns employment,
     consumption and savings decisions and separations and wage incidences
-    for an agent living T periods.
+    for an agent living model.T periods.
     """
 
     # T binomial draws that determine for every period t whether a separation occurs
@@ -110,12 +99,18 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
         w_index = find_nearest_index(model.w_grid, w_t)
         a_index = find_nearest_index(model.a_grid, a[t])
 
+        # save current employment status
         employment_spells[t] = is_employed
+
+        # calculate reservation wage given current level of assets.
         reservation_wage[t] = model.w_grid[np.where(accept_or_reject[a_index, :] == 1)[0][0]]
 
         if is_employed:
+            # a_opt_employed is a matrix of next-period asset levels given current period assets and wage.
             a[t+1] = model.a_grid[a_opt_employed[a_index, w_index]]
+            # this equation comes from the budget constraint. see model.py for details.
             consumption[t] = w_t + a[t]*(1 + model.r) - a[t+1] + model.c_hat
+            # an employed worker is separated from her job at probability α, each period
             is_employed = is_separated_at[t]
             if not is_employed:
                 separations.append(t)
@@ -123,18 +118,24 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
         else:
             w_t = offered_wage_at[t]
             w_index = find_nearest_index(model.w_grid, w_t)
+            # accept_or_reject is a matrix of job taking decisions given current assets and wage.
+            # a value of 1 means the agent will accept the job with the currently offered wage.
             is_employed = accept_or_reject[a_index, w_index]
             employment_spells[t] = is_employed
+
             if is_employed:
                 a[t+1] = model.a_grid[a_opt_employed[a_index, w_index]]
                 consumption[t] = w_t + a[t]*(1 + model.r) - a[t+1] + model.c_hat
             else:
                 a[t+1] = model.a_grid[a_opt_unemployed[a_index, w_index]]
+                # this equation is the same as before, only in the case of unemployment,
+                # agents receive unemployment benefits (z) instead of wage (w).
                 consumption[t] = model.z + a[t]*(1 + model.r) - a[t+1] + model.c_hat
+
         u_t[t] = model.u(consumption[t])
         realized_wage[t] = w_t
 
-    # drop assets at period T+1 because our graphs only go up to T.
+    # drop assets at period T+1 because we only plot up to period T.
     a = a[:-1].copy()
 
     return (
@@ -148,14 +149,13 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
     )
 
 
-def draw(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=100):
+def plot_lifetime(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=100):
+    """ plots assets, wages, and decisions over an agent's entire life span """
     fig, ax = plt.subplots()
     ax.set_xlabel('periods')
     ax.set_ylabel('stuff')
 
-    # ax.plot(range(T), u_t, '--', alpha=0.4, color="C0", label=f"$u(c_t)$")
     ax.plot(range(T), a, '-', alpha=0.4, color="C1", label=f"$a_t$")
-    # ax.plot(range(T), consumption, '-', alpha=0.4, color="C2", label=f"$c_t$")
     ax.plot(range(T), realized_wage, '--', alpha=0.4, color="C3", label=f"$w_t$")
     ax.plot(range(T), employment_spells, '--', alpha=0.4, color="C6", label=f"$employed$")
     ax.plot(range(T), reservation_wage, '--', alpha=0.4, color="C8", label="$\overline{w}$")
@@ -166,68 +166,74 @@ def draw(a, u_t, realized_wage, employment_spells, consumption, separations, res
     plt.show()
 
 
-def run_a_lot(T, m):
+def get_stats_from_multiple_lifetimes(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
+    """ generate averages for end-of-life wages and assets for 1,000 rich and poor agents """
     wages = []
     assets = []
     for i in range(1000):
-        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m)
+        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
         wages.append(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
-        assets.append(a[T-1])
+        assets.append(a[m.T-1])
     print("average lifetime wage for the poor: {}".format(np.mean(np.asarray(wages))))
     print("assets at end of life for the poor: {}".format(np.mean(assets)))
     wages = []
     assets = []
     for i in range(1000):
-        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=150, model=m)
+        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=150, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
         wages.append(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
-        assets.append(a[T-1])
+        assets.append(a[m.T-1])
     print("average lifetime wage for the rich: {}".format(np.mean(np.asarray(wages))))
     print("assets at end of life for the rich: {}".format(np.mean(assets)))
 
-def run(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
+
+def plot_single_lifetime(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
+    """ plot lifetime assets, wage and decisions for one poor and one rich agent """
     a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
-    draw(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=m.T)
+    plot_lifetime(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=m.T)
     print(np.sum(employment_spells))
     print(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
     a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=1000, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
     print(np.sum(employment_spells))
     print(np.dot(realized_wage,employment_spells)/np.sum(employment_spells))
-    draw(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=m.T)
+    plot_lifetime(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=m.T)
 
 
 def plot_stationary_distributions(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
+    """ plot histograms for wages and assets of 4,000 identical agents at end-of-life """
     wages = []
     assets = []
-    for i in range(1000):
+    for i in range(4000):
         a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
         wages.append(realized_wage[-1])
-        assets.append(a[T-1])
+        assets.append(a[m.T-1])
 
     count, bins, ignored = plt.hist(wages, 200, density=True)
     plt.savefig('results/stationary_wage_distribution.png')
     plt.show()
+    plt.close()
 
     count, bins, ignored = plt.hist(assets, 200, density=True)
     plt.savefig('results/stationary_asset_distribution.png')
     plt.show()
+    plt.close()
 
-
-# try:
-#     v = np.load('v.npy')
-#     h = np.load('h.npy')
-#     accept_or_reject = np.load('accept_or_reject.npy')
-#     a_opt_unemployed = np.load('a_opt_unemployed.npy')
-#     a_opt_employed = np.load('a_opt_employed.npy')
-# except IOError:
-#     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = solve_model()
-#     np.save('v.npy', v)
-#     np.save('h.npy', h)
-#     np.save('accept_or_reject.npy', accept_or_reject)
-#     np.save('a_opt_unemployed.npy', a_opt_unemployed)
-#     np.save('a_opt_employed.npy', a_opt_employed)
 
 if __name__ == '__main__':
     m = Model()
-    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+    try:
+        v = np.load('npy/v.npy')
+        h = np.load('npy/h.npy')
+        accept_or_reject = np.load('npy/accept_or_reject.npy')
+        a_opt_unemployed = np.load('npy/a_opt_unemployed.npy')
+        a_opt_employed = np.load('npy/a_opt_employed.npy')
+    except IOError:
+        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = solve_model()
+        np.save('npy/v.npy', v)
+        np.save('npy/h.npy', h)
+        np.save('npy/accept_or_reject.npy', accept_or_reject)
+        np.save('npy/a_opt_unemployed.npy', a_opt_unemployed)
+        np.save('npy/a_opt_employed.npy', a_opt_employed)
 
-    run(m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+    plot_single_lifetime(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
+    get_stats_from_multiple_lifetimes(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
+    plot_stationary_distributions(m, accept_or_reject, a_opt_unemployed, a_opt_employed)

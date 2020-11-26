@@ -8,7 +8,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from separations import binomial_draws
 from model import Model
 from wage_distribution import lognormal_draws
-from agent import generate_lifetime, find_nearest_index
+from lifetime import generate_lifetime, find_nearest_index
 
 
 np.set_printoptions(threshold=sys.maxsize)

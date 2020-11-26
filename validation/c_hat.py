@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
-from agent import find_nearest_index
+from lifetime import find_nearest_index
 
 
 """

@@ -5,7 +5,7 @@ import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from steady_state import get_steady_state
-from agent import find_nearest_index
+from lifetime import find_nearest_index
 
 
 """
@@ -14,6 +14,7 @@ higher beta means a_opt_employed and a_opt_unemployed should both be higher.
 
 
 DIR = '/home/shay/projects/quantecon/results/beta/'
+GRID_LIMIT = 50  # savings path should be limited to start of grid, because that's where the interesting results are
 
 
 def steady_state_by_beta():
@@ -47,7 +48,6 @@ def steady_state_by_beta():
         plt.close()
 
 
-
 def savings_by_beta():
     """ i don't trust steady-states because there are too many of them. """
     m = Model()
@@ -76,8 +76,8 @@ def savings_by_beta():
             fig, ax = plt.subplots()
             ax.set_xlabel('current period assets')
             ax.set_ylabel('next period assets')
-            ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="a")
-            ax.plot(m.a_grid, savings[w_choice_index, beta_index, :], '-', alpha=0.4, color="C2", label="a'")
+            ax.plot(range(GRID_LIMIT), range(GRID_LIMIT), '-', alpha=0.4, color="C1", label="a")
+            ax.plot(range(GRID_LIMIT), savings[w_choice_index, beta_index, 0:GRID_LIMIT], '-', alpha=0.4, color="C2", label="a'")
             ax.legend(loc="lower right")
             plt.savefig(DIR + 'savings_at_{w}_wage_and_{beta}_beta.png'.format(w=round(w), beta=str(beta).replace('.', '_')))
             plt.close()
@@ -109,8 +109,8 @@ def unsaving_by_beta():
             fig, ax = plt.subplots()
             ax.set_xlabel('current period assets')
             ax.set_ylabel('next period assets')
-            ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label="a")
-            ax.plot(m.a_grid, savings[w_choice_index, beta_index], '-', alpha=0.4, color="C1", label="a'")
+            ax.plot(range(GRID_LIMIT), range(GRID_LIMIT), '-', alpha=0.4, color="C1", label="a")
+            ax.plot(range(GRID_LIMIT), savings[w_choice_index, beta_index, 0:GRID_LIMIT], '-', alpha=0.4, color="C1", label="a'")
             ax.legend(loc="lower right")
             plt.savefig(DIR + 'unsavings_at_{w}_wage_and_{beta}_beta.png'.format(w=round(w), beta=str(beta).replace('.', '_')))
             plt.close()

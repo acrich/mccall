@@ -8,7 +8,7 @@ sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from separations import binomial_draws
 from wage_distribution import lognormal_draws
-from agent import generate_lifetime, find_nearest_index
+from lifetime import generate_lifetime, find_nearest_index
 from steady_state import get_steady_state
 
 
@@ -45,6 +45,7 @@ eat away savings, thus smoothing consumption to a certain extent.
 
 
 DIR = '/home/shay/projects/quantecon/results/savings_and_consumption/'
+GRID_LIMIT = 50
 
 
 def is_monotonically_increasing(vector):
@@ -85,8 +86,8 @@ def savings_is_increasing_in_current_assets(m, a_opt_employed):
         ax.set_xlabel('current period assets')
         ax.set_ylabel('next period assets with {w} wage'.format(w=round(w)))
 
-        ax.plot(m.a_grid, m.a_grid, '-', alpha=0.4, color="C1", label=f"$a$")
-        ax.plot(m.a_grid, a_opt_employed[:, grid_index], '-', alpha=0.4, color="C2", label=f"$a'$")
+        ax.plot(range(GRID_LIMIT), range(GRID_LIMIT), '-', alpha=0.4, color="C1", label=f"$a$")
+        ax.plot(range(GRID_LIMIT), a_opt_employed[0:GRID_LIMIT, grid_index], '-', alpha=0.4, color="C2", label=f"$a'$")
         ax.legend(loc='lower right')
         plt.savefig(DIR + 'savings_by_current_assets_at_{w}_wage.png'.format(w=round(w)))
         plt.close()

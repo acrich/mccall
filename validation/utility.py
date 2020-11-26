@@ -5,7 +5,7 @@ import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from steady_state import get_steady_states
-from agent import find_nearest_index
+from lifetime import find_nearest_index
 
 
 """

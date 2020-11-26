@@ -11,3 +11,4 @@ tex/*.log
 tex/*.out
 tex/*.pdf
 tex/*.toc
+tex/*.tex

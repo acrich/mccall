@@ -1,10 +1,10 @@
 import os
 import sys
 sys.path.append('/home/shay/projects/quantecon')
-from model_with_risk import Model
+from model import Model
 import numpy as np
 import matplotlib.pyplot as plt
-from agent import find_nearest_index
+from lifetime import find_nearest_index
 
 
 """

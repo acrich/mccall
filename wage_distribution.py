@@ -26,6 +26,23 @@ def lognormal_draws(n=100, μ=μ, σ=σ, seed=1234):
     return np.exp(s)
 
 
+def get_stats():
+    w = lognormal_draws(n=NUM_DRAWS, μ=μ, σ=σ)
+    return {
+        "minimum": np.min(w),
+        "maximum": np.max(w),
+        "average": np.mean(w),
+        "median": np.median(w),
+    }
+
+
+def gen_plot():
+    w = lognormal_draws(n=NUM_DRAWS, μ=μ, σ=σ)
+    count, bins, ignored = plt.hist(w, NUM_BINS, density=True)
+    plt.savefig('results/wage_distribution.png')
+    plt.close()
+
+
 if __name__ == '__main__':
     w = lognormal_draws(n=NUM_DRAWS, μ=μ, σ=σ)
     print("minimum is {}.".format(np.min(w)))

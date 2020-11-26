@@ -91,7 +91,7 @@ I use a log-normal distribution for wages. This is done by drawing from a normal
 \begin{Verbatim}[frame = single, fontsize = \footnotesize]
 Summary Stats       Min       Median        Mean        Max
 ------------------------------------------------------------------
-                    0.1       4.26          6.65        94.58
+                    $wage_min       $wage_median          $wage_mean        $wage_max
 \end{Verbatim}
 
 \begin{figure}[hbt!]
@@ -108,15 +108,15 @@ Summary Stats       Min       Median        Mean        Max
  \hline
  Parameter &  Value & Description \\ [0.5ex]
  \hline
- z & 0.0 & Unemployment benefits \\
-$\beta$ & 0.96 & Discount factor \\
-$\overline{c}$ & 0.0 & Minimum level of single period consumption \\
-T & 408 & Number of lifetime periods \\
-$\alpha$ & 0.029 & Separation rate \\
-$\mu$ & 1.4271 & Mean of the normal distribution for wages \\
-$\sigma$ & 0.9695 & Standard error of the normal distribution for wages \\
-$\rho$ & 1.0 & Coefficient of relative risk aversion \\
-ism & 1.0 & Inter-temporal savings motive \\
+ z & $z & Unemployment benefits \\
+$\beta$ & $beta & Discount factor \\
+$\overline{c}$ & $c_hat & Minimum level of single period consumption \\
+T & $T & Number of lifetime periods \\
+$\alpha$ & $alpha & Separation rate \\
+$\mu$ & $mu & Mean of the normal distribution for wages \\
+$\sigma$ & $sigma & Standard error of the normal distribution for wages \\
+$\rho$ & $rho & Coefficient of relative risk aversion \\
+ism & $ism & Inter-temporal savings motive \\
 r & $\frac{1}{12} (\frac{ism}{\beta} - 1)$ & Monthly interest rate on assets \\ [1ex]
  \hline
 \end{tabular}
@@ -128,8 +128,8 @@ The choice of T and $\alpha$ is taken from: https://www.bls.gov/news.release/pdf
 \begin{Verbatim}[frame = single, fontsize = \footnotesize]
 Grid            Min         Max                 Size
 ------------------------------------------------------------------
-Wages           1e-10      max(wage_draws)*    100
-Assets          1e-10      2000.0              200
+Wages           $w_min      max(wage_draws)*    $w_size
+Assets          $a_min      $a_max              $a_size
 \end{Verbatim}
 
 * The max value on the wage grid is calculated by taking the max() of 4000 random draws from the wage distribution.

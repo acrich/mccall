@@ -4,7 +4,7 @@ from numba import njit, prange, float64, int64
 from numba.experimental import jitclass
 import quantecon as qe
 import random
-from wage_distribution import lognormal_draws
+from wage_distribution import lognormal_draws, μ, σ
 
 
 VERY_SMALL_NUMBER = -1e+3
@@ -21,6 +21,9 @@ mccall_data = [
     ('ism', float64),  # inter-temporal savings motive
     ('c_hat', float64),  # minimal consumption
     ('r', float64),  # interest on assets
+    ('w_min', float64),  # minimum of wage grid
+    ('a_min', float64),  # minimum of assets grid
+    ('a_max', float64),  # maximum of assets grid
     ('w_size', int64),  # size of wage grid
     ('w_grid', float64[:]),  # wage grid
     ('w_draws', float64[:]),  # 1,000 draws from the wage distribution
@@ -37,15 +40,16 @@ class Model:
 
     With savings allowed, the equations from:
     https://python.quantecon.org/mccall_model_with_separation.html#The-Bellman-Equations
+
     become:
 
-    v(w_e, a) = u(c_e) + \beta [(1 - \alpha) v(w_e, a') + \alpha \sum_{w'} h(w', a') q(w')] \; s.t. \; c_e + a' = a + w_e
-    h(w, a) = \max \{ v(w, a), u(c_u) + \beta \sum_{w'} h(w', a') q(w') \} \; s.t. \; c_u + a' = a
+    v(w_e, a) = u(c_e) + \beta [(1 - \alpha) v(w_e, a') + \alpha \sum_{w'} h(w', a') q(w')] \; s.t. \; c_e - c_hat + a' = a + w_e
+    h(w, a) = \max \{ v(w, a), u(c_u) + \beta \sum_{w'} h(w', a') q(w') \} \; s.t. \; c_u - c_hat + a' = a + z
 
     and equations (5) and (6) become:
 
-    d(a') = \sum_{w'} \{ v(w', a'), u(a' - a'') +\beta d(a'') \} q(w')
-    v(w,a) = u(a + w - a') + \beta [(1 - \alpha) v(w, a') + \alpha d(a')]
+    d(a') = \sum_{w'} \{ v(w', a'), u(a' - a'' + z - c_hat) +\beta d(a'') \} q(w')
+    v(w,a) = u(a + w - a' - c_hat) + \beta [(1 - \alpha) v(w, a') + \alpha d(a')]
     """
 
     def __init__(
@@ -55,8 +59,8 @@ class Model:
             T=408,
             α=1/34,
             τ=0.8,
-            μ=-0.03,
-            σ=1.2,
+            μ=μ,
+            σ=σ,
             ism=1,
             c_hat=0,
             ρ=1
@@ -88,44 +92,34 @@ class Model:
         self.w_draws = lognormal_draws(n=1000, μ=self.μ, σ=self.σ, seed=1234)
 
         # wage grid parameters
-        w_min = 1e-10
+        self.w_min = 1e-10
         w_max = np.max(self.w_draws)
         self.w_size = 100
+        self.w_grid = np.linspace(self.w_min, w_max, self.w_size)
 
-        # print("wage grid is from %f to %f, with size %d, and the average wage is %r" % (
-        #     w_min,
-        #     w_max,
-        #     self.w_size,
-        #     np.mean(self.w_draws)
-        # ))
-        self.w_grid = np.linspace(w_min, w_max, self.w_size)
-
-        a_min = 1e-10
-        a_max = 2000
+        self.a_min = 1e-10
+        self.a_max = 2000
         self.a_size = 200
-        self.a_grid = np.linspace(a_min, a_max, self.a_size)
         # see: https://stackoverflow.com/a/62740029/1408861
-        self.a_grid = a_max*((np.linspace(a_min, 1, self.a_size))**2)
+        self.a_grid = self.a_max*((np.linspace(self.a_min, 1, self.a_size))**2)
 
         # minimal consumption per period
         self.c_hat = c_hat
 
         # interest rate on assets, given a value of the inter-temporal savings motive
         # eventually, we divide by 12 to get a monthly return on assets.
-        self.r = ((ism/self.β) - 1)/12
+        self.ism = ism
+        self.r = ((ism/self.β) - 1)
 
         # coefficient of relative risk aversion (only used when u() is overriden)
         self.ρ = ρ
 
-
-    @staticmethod
-    def u(x):
-        return np.log(x)
-
-    # @staticmethod
-    # def u_iso_elastic(c):
-    #     # the iso-elastic utility function is CRRA, (and thus, DARA) and satisfies prudence.
-    #     return (c**(1 - self.ρ) - 1) / (1 - self.ρ)
+    def u(self, c):
+        if self.ρ == 1:
+            return np.log(c)
+        # the iso-elastic utility function is CRRA, (and thus, DARA) and satisfies prudence.
+        # because of prudence and the risk of unemployment, we expect some positive level of savings.
+        return (c**(1 - self.ρ) - 1) / (1 - self.ρ)
 
     def update_d(self, h):
         d = np.empty_like(self.a_grid)
@@ -185,7 +179,6 @@ class Model:
 
             if max_index == 0:
                 # all consumption choices are negative.
-                # print("all consumption choices are negative.")
                 unemployment_opt = VERY_SMALL_NUMBER
                 a_opt = 0
             else:
@@ -206,17 +199,10 @@ class Model:
 
 
     def update(self, v, h):
-        #qe.tic()
+        """ iterate once given existing v and h """
         d = self.update_d(h)
-        #qe.toc()
-
-        #qe.tic()
         v_new, a_opt_employed = self.update_v(v, h, d)
-        #qe.toc()
-
-        #qe.tic()
         h_new, a_opt_unemployed, accept_or_reject = self.update_h(v, h, d, a_opt_employed)
-        #qe.toc()
 
         return v_new, h_new, accept_or_reject, a_opt_unemployed, a_opt_employed
 
@@ -226,8 +212,8 @@ class Model:
         Iterates to convergence on the Bellman equations
         """
 
-        v = np.ones((self.a_size, self.w_size))    # Initial guess of v
-        h = np.ones((self.a_size, self.w_size))    # Initial guess of h
+        v = np.ones((self.a_size, self.w_size))  # Initial guess of v
+        h = np.ones((self.a_size, self.w_size))  # Initial guess of h
         i = 0
         error = tol + 1
 

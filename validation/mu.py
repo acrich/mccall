@@ -5,7 +5,7 @@ import sys
 sys.path.append('/home/shay/projects/quantecon')
 from model import Model
 from steady_state import get_steady_state
-from agent import generate_lifetime
+from lifetime import generate_lifetime
 
 
 """
