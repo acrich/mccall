@@ -61,7 +61,7 @@ class Model:
             τ=0.8,
             μ=μ,
             σ=σ,
-            ism=1,
+            ism=0.98,
             c_hat=0,
             ρ=1
         ):
@@ -109,7 +109,7 @@ class Model:
         # interest rate on assets, given a value of the inter-temporal savings motive
         # eventually, we divide by 12 to get a monthly return on assets.
         self.ism = ism
-        self.r = ((ism/self.β) - 1)
+        self.r = ((ism/self.β) - 1)/12
 
         # coefficient of relative risk aversion (only used when u() is overriden)
         self.ρ = ρ
