@@ -16,7 +16,7 @@ and this is useful during calibration.
 # this runs all the scripts in the validation dir, and they generate
 # all the graphs, and place them under results/
 print("generating all the plots (this will take a long time)...")
-#run_all()
+run_all()
 
 # getting real parameters from the Model class, as we'll soon
 # set them in the tex file template.

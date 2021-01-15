@@ -55,7 +55,8 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
     # wage of employed worker, or offered wage for the unemployed.
     # this is a variable and not a vector - it only states the current wage.
     # this is the actual wage and not a grid index.
-    w_t = model.w_grid[0]
+    # initial wage set so as to cover minimal consumption constraint and not much more.
+    w_t = model.w_grid[find_nearest_index(model.w_grid, model.c_hat) + 1]
 
     # a vector of size T that holds the offered/current wage for every t.
     # these are the actual wage levels and not grid indices.
@@ -109,14 +110,20 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
             # a_opt_employed is a matrix of next-period asset levels given current period assets and wage.
             a[t+1] = model.a_grid[a_opt_employed[a_index, w_index]]
             # this equation comes from the budget constraint. see model.py for details.
-            consumption[t] = w_t + a[t]*(1 + model.r) - a[t+1] + model.c_hat
+            consumption[t] = w_t + a[t]*(1 + model.r) - a[t+1] - model.c_hat
             # an employed worker is separated from her job at probability α, each period
             is_employed = is_separated_at[t]
             if not is_employed:
                 separations.append(t)
 
         else:
-            w_t = offered_wage_at[t]
+
+            #w_t = offered_wage_at[t]
+            # wage offers follow an AR(1) process
+            w_t = np.random.normal(w_t, 3, 1)[0]
+            while w_t <= 0:
+                w_t = np.random.normal(w_t, 3, 1)[0]
+
             w_index = find_nearest_index(model.w_grid, w_t)
             # accept_or_reject is a matrix of job taking decisions given current assets and wage.
             # a value of 1 means the agent will accept the job with the currently offered wage.
@@ -125,12 +132,12 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
 
             if is_employed:
                 a[t+1] = model.a_grid[a_opt_employed[a_index, w_index]]
-                consumption[t] = w_t + a[t]*(1 + model.r) - a[t+1] + model.c_hat
+                consumption[t] = w_t + a[t]*(1 + model.r) - a[t+1] - model.c_hat
             else:
                 a[t+1] = model.a_grid[a_opt_unemployed[a_index, w_index]]
                 # this equation is the same as before, only in the case of unemployment,
                 # agents receive unemployment benefits (z) instead of wage (w).
-                consumption[t] = model.z + a[t]*(1 + model.r) - a[t+1] + model.c_hat
+                consumption[t] = model.z + a[t]*(1 + model.r) - a[t+1] - model.c_hat
 
         u_t[t] = model.u(consumption[t])
         realized_wage[t] = w_t
@@ -158,6 +165,7 @@ def plot_lifetime(a, u_t, realized_wage, employment_spells, consumption, separat
     ax.plot(range(T), a, '-', alpha=0.4, color="C1", label=f"$a_t$")
     ax.plot(range(T), realized_wage, '--', alpha=0.4, color="C3", label=f"$w_t$")
     ax.plot(range(T), employment_spells, '--', alpha=0.4, color="C6", label=f"$employed$")
+    ax.plot(range(T), consumption, '--', alpha=0.4, color="C7", label=f"consumption")
     ax.plot(range(T), reservation_wage, '--', alpha=0.4, color="C8", label="$\overline{w}$")
     for t in separations:
         plt.axvline(x=t, color="C7")
@@ -220,20 +228,21 @@ def plot_stationary_distributions(m, accept_or_reject, a_opt_unemployed, a_opt_e
 
 if __name__ == '__main__':
     m = Model()
-    try:
-        v = np.load('npy/v.npy')
-        h = np.load('npy/h.npy')
-        accept_or_reject = np.load('npy/accept_or_reject.npy')
-        a_opt_unemployed = np.load('npy/a_opt_unemployed.npy')
-        a_opt_employed = np.load('npy/a_opt_employed.npy')
-    except IOError:
-        v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = solve_model()
-        np.save('npy/v.npy', v)
-        np.save('npy/h.npy', h)
-        np.save('npy/accept_or_reject.npy', accept_or_reject)
-        np.save('npy/a_opt_unemployed.npy', a_opt_unemployed)
-        np.save('npy/a_opt_employed.npy', a_opt_employed)
+    # try:
+    #     v = np.load('npy/v.npy')
+    #     h = np.load('npy/h.npy')
+    #     accept_or_reject = np.load('npy/accept_or_reject.npy')
+    #     a_opt_unemployed = np.load('npy/a_opt_unemployed.npy')
+    #     a_opt_employed = np.load('npy/a_opt_employed.npy')
+    # except IOError:
+    #     v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
+    #     np.save('npy/v.npy', v)
+    #     np.save('npy/h.npy', h)
+    #     np.save('npy/accept_or_reject.npy', accept_or_reject)
+    #     np.save('npy/a_opt_unemployed.npy', a_opt_unemployed)
+    #     np.save('npy/a_opt_employed.npy', a_opt_employed)
+    v, h, accept_or_reject, a_opt_unemployed, a_opt_employed = m.solve_model()
 
     plot_single_lifetime(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
-    get_stats_from_multiple_lifetimes(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
-    plot_stationary_distributions(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
+    #get_stats_from_multiple_lifetimes(m, accept_or_reject, a_opt_unemployed, a_opt_employed)
+    #plot_stationary_distributions(m, accept_or_reject, a_opt_unemployed, a_opt_employed)

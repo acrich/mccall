@@ -53,3 +53,15 @@ if __name__ == '__main__':
     count, bins, ignored = plt.hist(w, NUM_BINS, density=True)
     plt.savefig('results/wage_distribution.png')
     plt.show()
+
+    average = np.mean(w)
+    below_mean = 0
+    above_mean = 0
+    for draw in w:
+        if draw <= average:
+            below_mean += 1
+        else:
+            above_mean += 1
+    print("below mean is {}.".format(below_mean))
+    print("above mean is {}.".format(above_mean))
+    print("so about 70% are below the mean, which is expected")

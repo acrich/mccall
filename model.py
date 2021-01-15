@@ -43,8 +43,8 @@ class Model:
 
     become:
 
-    v(w_e, a) = u(c_e) + \beta [(1 - \alpha) v(w_e, a') + \alpha \sum_{w'} h(w', a') q(w')] \; s.t. \; c_e - c_hat + a' = a + w_e
-    h(w, a) = \max \{ v(w, a), u(c_u) + \beta \sum_{w'} h(w', a') q(w') \} \; s.t. \; c_u - c_hat + a' = a + z
+    v(w_e, a) = u(c_e) + \beta [(1 - \alpha) v(w_e, a') + \alpha \sum_{w'} h(w', a') q(w')] \; s.t. \; c_e + c_hat + a' = a + w_e
+    h(w, a) = \max \{ v(w, a), u(c_u) + \beta \sum_{w'} h(w', a') q(w') \} \; s.t. \; c_u + c_hat + a' = a + z
 
     and equations (5) and (6) become:
 
@@ -55,15 +55,15 @@ class Model:
     def __init__(
             self,
             z=0,
-            β=0.96,
+            β=0.94,
             T=408,
             α=1/34,
             τ=0.8,
             μ=μ,
             σ=σ,
-            ism=0.98,
-            c_hat=0,
-            ρ=1
+            ism=1.001,
+            c_hat=2,
+            ρ=0.3
         ):
 
         # unemployment benefits
@@ -109,7 +109,7 @@ class Model:
         # interest rate on assets, given a value of the inter-temporal savings motive
         # eventually, we divide by 12 to get a monthly return on assets.
         self.ism = ism
-        self.r = ((ism/self.β) - 1)/12
+        self.r = ((ism/self.β) - 1)
 
         # coefficient of relative risk aversion (only used when u() is overriden)
         self.ρ = ρ
@@ -138,7 +138,7 @@ class Model:
         a_opt_employed = a_opt_employed.astype(int64)
         for i, a in enumerate(a_grid):
             for j, w in enumerate(self.w_grid):
-                consumption = w + a_grid[i]*(1 + self.r) - a_grid + self.c_hat
+                consumption = w + a_grid[i]*(1 + self.r) - a_grid - self.c_hat
 
                 negative_elements = np.where(consumption < 0)[0]
                 if len(negative_elements) > 0:
@@ -169,7 +169,7 @@ class Model:
         accept_or_reject = np.empty((self.a_size, self.w_size))
 
         for i in range(self.a_size):
-            consumption = self.z + a_grid[i]*(1 + self.r) - a_grid + self.c_hat
+            consumption = self.z + a_grid[i]*(1 + self.r) - a_grid - self.c_hat
 
             negative_elements = np.where(consumption < 0)[0]
             if len(negative_elements) > 0:
