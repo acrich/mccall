@@ -50,6 +50,7 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
     # this vector is only used if the agent is currenly unemployed.
     # this is the actual wage and not a grid index, and the wage drawn may not even
     # be on the grid, so we approximate using find_nearest_index wherever necessary.
+    # @TODO: drop this. we're using persistence instead.
     offered_wage_at = lognormal_draws(n=model.T, μ=model.μ, σ=model.σ)
 
     # wage of employed worker, or offered wage for the unemployed.
@@ -117,12 +118,8 @@ def generate_lifetime(a_0=1, model={}, accept_or_reject=None, a_opt_unemployed=N
                 separations.append(t)
 
         else:
-
-            #w_t = offered_wage_at[t]
-            # wage offers follow an AR(1) process
-            w_t = np.random.normal(w_t, 3, 1)[0]
-            while w_t <= 0:
-                w_t = np.random.normal(w_t, 3, 1)[0]
+            # w_t = offered_wage_at[t]
+            w_t = model.get_wage_offer(w_t)
 
             w_index = find_nearest_index(model.w_grid, w_t)
             # accept_or_reject is a matrix of job taking decisions given current assets and wage.
@@ -206,22 +203,20 @@ def plot_single_lifetime(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
     plot_lifetime(a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage, T=m.T)
 
 
+def get_last_wage(a_0, model, accept_or_reject, a_opt_unemployed, a_opt_employed):
+    a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
+    return realized_wage[-1]
+
+
 def plot_stationary_distributions(m, accept_or_reject, a_opt_unemployed, a_opt_employed):
     """ plot histograms for wages and assets of 4,000 identical agents at end-of-life """
     wages = []
-    assets = []
     for i in range(4000):
-        a, u_t, realized_wage, employment_spells, consumption, separations, reservation_wage = generate_lifetime(a_0=0, model=m, accept_or_reject=accept_or_reject, a_opt_unemployed=a_opt_unemployed, a_opt_employed=a_opt_employed)
-        wages.append(realized_wage[-1])
-        assets.append(a[m.T-1])
+        print("%d / 4000" % i)
+        wages.append(get_last_wage(0, m, accept_or_reject, a_opt_unemployed, a_opt_employed))
 
     count, bins, ignored = plt.hist(wages, 200, density=True)
     plt.savefig('results/stationary_wage_distribution.png')
-    plt.show()
-    plt.close()
-
-    count, bins, ignored = plt.hist(assets, 200, density=True)
-    plt.savefig('results/stationary_asset_distribution.png')
     plt.show()
     plt.close()
 

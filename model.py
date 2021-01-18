@@ -1,8 +1,8 @@
+import time
 from interpolation import interp
 import numpy as np
-from numba import njit, prange, float64, int64
+from numba import njit, prange, float64, int64, objmode
 from numba.experimental import jitclass
-import quantecon as qe
 import random
 from wage_distribution import lognormal_draws, μ, σ
 
@@ -26,10 +26,11 @@ mccall_data = [
     ('a_max', float64),  # maximum of assets grid
     ('w_size', int64),  # size of wage grid
     ('w_grid', float64[:]),  # wage grid
-    ('w_draws', float64[:]),  # 1,000 draws from the wage distribution
+    ('w_draws', float64[:, :]),  # 4,000 draws from the wage distribution, per existing wage
     ('a_size', int64),  # size of the assets grid
     ('a_grid', float64[:]),  # assets grid
     ('ρ', float64),  # coefficient of relative risk aversion
+    ('wage_dispersion', float64),  # variance of wage offers, given previous wage
 ]
 
 
@@ -63,7 +64,8 @@ class Model:
             σ=σ,
             ism=1.001,
             c_hat=2,
-            ρ=0.3
+            ρ=0.3,
+            wage_dispersion=3
         ):
 
         # unemployment benefits
@@ -89,11 +91,11 @@ class Model:
 
         # a set of 1000 random wage draws, used to derive the expected wage
         # that's needed to compute the next period utility from being unemployed.
-        self.w_draws = lognormal_draws(n=1000, μ=self.μ, σ=self.σ, seed=1234)
+        w_draws = lognormal_draws(n=1000, μ=self.μ, σ=self.σ, seed=1234)
 
         # wage grid parameters
         self.w_min = 1e-10
-        w_max = np.max(self.w_draws)
+        w_max = np.max(w_draws)
         self.w_size = 100
         self.w_grid = np.linspace(self.w_min, w_max, self.w_size)
 
@@ -102,6 +104,10 @@ class Model:
         self.a_size = 200
         # see: https://stackoverflow.com/a/62740029/1408861
         self.a_grid = self.a_max*((np.linspace(self.a_min, 1, self.a_size))**2)
+
+        self.w_draws = np.empty((self.w_size, 400))
+        for j, w in enumerate(self.w_grid):
+            self.w_draws[j, :] = np.abs(np.random.normal(w, self.wage_dispersion, 400))
 
         # minimal consumption per period
         self.c_hat = c_hat
@@ -114,6 +120,10 @@ class Model:
         # coefficient of relative risk aversion (only used when u() is overriden)
         self.ρ = ρ
 
+        # wage offers are persistent, meaning they follow an AR(1) process
+        # where the error term is defined by the following parameter
+        self.wage_dispersion = wage_dispersion
+
     def u(self, c):
         if self.ρ == 1:
             return np.log(c)
@@ -121,14 +131,30 @@ class Model:
         # because of prudence and the risk of unemployment, we expect some positive level of savings.
         return (c**(1 - self.ρ) - 1) / (1 - self.ρ)
 
+    def get_wage_offer(self, w_t):
+        # persistence in wage offers through an AR(1) process
+        # wage dispersion should really be the degrees of freedom in a Student's t distribution.
+        # the variance defines the support, which in a mean preserving spread should be identical.
+        w_t = np.random.normal(w_t, self.wage_dispersion, 1)[0]
+        if w_t < 0:
+            w_t = abs(w_t)
+        elif w_t == 0:
+            w_t = 0.1
+        return w_t
+
     def update_d(self, h):
-        d = np.empty_like(self.a_grid)
+        d = np.empty_like(h)
         for i, a in enumerate(self.a_grid):
             hf = lambda x: interp(self.w_grid, h[i, :], x)
-            d[i] = np.mean(hf(self.w_draws))
-        for i in range(len(d)):
-            if np.isnan(d[i]):
-                raise Exception("d is NaN")
+            for j, w in enumerate(self.w_grid):
+                d[i, j] = np.mean(hf(self.w_draws[j]))
+        for i in range(self.a_size):
+            for j in range(self.w_size):
+                if np.isnan(d[i, j]):
+                    print(i)
+                    print(j)
+                    print(h)
+                    raise Exception("d is NaN")
         return d
 
     def update_v(self, v, h, d):
@@ -151,7 +177,7 @@ class Model:
                     v_new[i, j] = np.nan
                     a_opt_employed[i, j] = 0
                 else:
-                    rhs = self.u(consumption[:max_index]) + self.β*((1 - self.α)*v[:, j][:max_index] + self.α*d[:max_index])
+                    rhs = self.u(consumption[:max_index]) + self.β*((1 - self.α)*v[:, j][:max_index] + self.α*d[:max_index, j])
                     v_new[i, j] = np.nanmax(rhs)
                     if np.isnan(v_new[i, j]):
                         # @TODO if nan then raise, don't assign nan above, using VERY_SMALL_NUMBER instead.
@@ -177,16 +203,16 @@ class Model:
             else:
                 max_index = self.a_size
 
-            if max_index == 0:
-                # all consumption choices are negative.
-                unemployment_opt = VERY_SMALL_NUMBER
-                a_opt = 0
-            else:
-                unemployment = self.u(consumption[:max_index]) + self.β*d[:max_index]
-                unemployment_opt = np.max(unemployment)
-                a_opt = np.argmax(unemployment)
-
             for j in range(self.w_size):
+                if max_index == 0:
+                    # all consumption choices are negative.
+                    unemployment_opt = VERY_SMALL_NUMBER
+                    a_opt = 0
+                else:
+                    unemployment = self.u(consumption[:max_index]) + self.β*d[:max_index, j]
+                    unemployment_opt = np.max(unemployment)
+                    a_opt = np.argmax(unemployment)
+
                 rhs = np.asarray([unemployment_opt, v[i, j]])
                 h_new[i, j] = np.nanmax(rhs)
                 accept_or_reject[i, j] = np.where(rhs == h_new[i, j])[0][0]
@@ -200,9 +226,23 @@ class Model:
 
     def update(self, v, h):
         """ iterate once given existing v and h """
+        #with objmode(time1='f8'):
+        #    time1 = time.perf_counter()
         d = self.update_d(h)
+        #with objmode():
+        #    print('time: {}'.format(time.perf_counter() - time1))
+
+        #with objmode(time1='f8'):
+        #    time1 = time.perf_counter()
         v_new, a_opt_employed = self.update_v(v, h, d)
+        #with objmode():
+        #    print('time: {}'.format(time.perf_counter() - time1))
+
+        #with objmode(time1='f8'):
+        #    time1 = time.perf_counter()
         h_new, a_opt_unemployed, accept_or_reject = self.update_h(v, h, d, a_opt_employed)
+        #with objmode():
+        #    print('time: {}'.format(time.perf_counter() - time1))
 
         return v_new, h_new, accept_or_reject, a_opt_unemployed, a_opt_employed
 
